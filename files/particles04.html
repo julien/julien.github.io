@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      * {margin:0;padding:0;overflow:hidden;}
+      #container { background-color:#000; width:400px;height: 300px; }
+    </style>
+  </head>
+  <body>
+    <div id="container"></div>
+    <script src="assets/three.r41.js"></script>
+    <script>
+      var WIDTH = window.innerWidth,
+        HEIGHT = window.innerHeight,
+        VIEW_ANGLE = 0,
+        ASPECT = WIDTH / HEIGHT,
+        NEAR = 10,
+        FAR = 1000;
+
+      var container = document.querySelector("#container");
+      container.style.width = window.innerWidth + "px";
+      container.style.height = window.innerHeight + "px";
+
+      var renderer = new THREE.WebGLRenderer();
+      var camera = new THREE.Camera(VIEW_ANGLE, ASPECT, NEAR, FAR);
+      var scene = new THREE.Scene();
+
+      var ranges = [];
+      var angle = 0;
+      var camSpeedX = 4;
+
+      camera.position.z = 800;
+      renderer.setSize(WIDTH, HEIGHT);
+      container.appendChild(renderer.domElement);
+
+      var particleCount = 500,
+      particles = new THREE.Geometry(),
+      pMaterial = new THREE.ParticleBasicMaterial({
+        color: 0xFFFFFF,
+        size: 40 + Math.random() * 20 - 10,
+        map: THREE.ImageUtils.loadTexture("assets/particle01.png"),
+        blending: THREE.AdditiveBlending,
+        transparent: true
+      });
+
+      for(var p = 0; p < particleCount; p++) {
+        var pX = Math.random() * 500 - 250,
+        pY = Math.random() * 500 - 250,
+        pZ = Math.random() * 500 - 250,
+        particle = new THREE.Vertex(new THREE.Vector3(pX, pY, pZ));
+
+        particle.velocity = new THREE.Vector3(0, 0, 0); //-Math.random(), 0);
+        particles.vertices.push(particle);
+
+        ranges.push(Math.random() * 200-100);
+      }
+
+      var particleSystem = new THREE.ParticleSystem(particles, pMaterial);
+      particleSystem.sortParticles = true;
+
+      scene.addChild(particleSystem);
+      // renderer.render(scene, camera);
+
+      function update() {
+        // particleSystem.rotation.x += 0.01;
+        //particleSystem.rotation.y += 0.01;
+        // particleSystem.rotation.z += 0.01;
+        //var pCount = particleCount;
+        //while(pCount--) {
+        //   var particle = particles.vertices[pCount];
+        /*if(particle.position.y < -200) {
+          particle.position.y = 200;
+          particle.velocity.y = 0;
+          }*/
+        //particle.velocity.x -= Math.random() * .1;
+
+        // if(pCount % 2 == 0) {
+        //    particle.velocity.x = Math.cos(angle * .3) * ranges[pCount];
+        //	particle.velocity.z = Math.sin(angle * .06) * ranges[pCount];
+        // } else {
+        //  particle.x = Math.cos(angle * .12) * ranges[pCount];
+        //	particle.y = Math.sin(angle * .06) * ranges[pCount];
+        //}
+
+
+        // particle.position.addSelf(particle.velocity);
+        //}
+
+        for(var i = 0; i < particleCount; i++) {
+          var particle = particles.vertices[i];
+
+          particle.velocity.z = Math.cos(angle * .0003) * ranges[i];
+          // particle.velocity.y -= Math.sin(angle * .001) * ranges[i];
+          // particle.velocity.x -= Math.cos(angle * .001) * ranges[i];
+          // particle.position.addSelf(particle.velocity);
+          particle.position.addSelf(particle.velocity);
+
+          if(particle.position.z < -200) {
+            particle.position.z = 1000;
+            // particle.velocity.z =  0; // particle.velocity.z * -1;
+          } else if(particle.position.z > 1000) {
+            particle.position.z = -200;
+          }
+        }
+
+        angle += 0.001;
+        particleSystem.geometry.__dirtyVertices = true;
+
+        camera.position.x += camSpeedX;
+        if (camera.position.x >= 200) {
+          camSpeedX *= -1;
+        } else if (camera.position.x <= -200){
+          camSpeedX *= -1;
+        }
+
+        renderer.render(scene, camera);
+        requestAnimationFrame(update);
+      }
+      requestAnimationFrame(update);
+
+    </script>
+    <script src="assets/menu.js"></script>
+  </body>
+</html>
+
+

@@ -1,0 +1,229 @@
+<!doctype html>
+<html>
+  <head>
+    <style>
+      body,html{margin:0;padding:0;width:100%;height:100%;overflow:hidden}
+    </style>
+  </head>
+  <body>
+
+    <canvas id="canvas" width="512" height="512"></canvas>
+
+    <script id="vs" type="x-shader/x-vertex">
+
+      attribute vec4 aVertexPosition;
+      attribute vec4 aVertexVelocity;
+
+      uniform mat4 uPMatrix;
+      uniform mat4 uMVMatrix;
+
+      uniform float uTime; // not used right now
+
+      varying mediump float vParametricTime;
+
+      void main() {
+        vParametricTime = (aVertexPosition.w / 20.0); // ranges from 10.0 to 100.0 are "ok"
+
+        vec3 currentPosition = vec3(
+          aVertexPosition.x + (aVertexVelocity.x * vParametricTime),
+          aVertexPosition.y + (aVertexVelocity.y * vParametricTime),
+          aVertexPosition.z + (aVertexVelocity.z * vParametricTime)
+        );
+        currentPosition.y -= 5.0 * vParametricTime * vParametricTime;
+
+        gl_Position = uPMatrix * uMVMatrix * vec4(currentPosition.xyz, 1.0);
+        gl_PointSize = aVertexVelocity.z;
+      }
+    </script>
+
+    <script id="fs" type="x-shader/x-fragment">
+      varying mediump float vParametricTime;
+
+      void main() {
+        gl_FragColor = vec4(vParametricTime * 0.8, vParametricTime * 0.8, 1.0, 0.9 - (vParametricTime * 0.4));
+      }
+    </script>
+
+    <script src="assets/gl-matrix-min.js"></script>
+
+    <script>
+      window.onload = function () {
+        var canvas = document.getElementById('canvas')
+          , gl
+          , program
+          , MAX_NUMBER_OF_PARTICLES = 1000
+          , MAX_SPAWN_PER_FRAME = 20
+          , numParticles = 0
+          , LIFESPAN = 140.0
+          , START_Y = 0
+          , d = new Date()
+          , mvMatrix = mat4.create()
+          , pMatrix = mat4.create()
+          , aVertexPosition
+          , aVertexVelocity
+          , particles = [] // x, y, z, age, velx, vely, size
+          , PARTICLE_COMPONENTS = 7
+          , pointBuffer
+          , paused = 0;
+
+        function init() {
+          var vs, fs;
+
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+
+          gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+          if (!gl) {
+            throw 'Unable to create WebGL context';
+          }
+
+          vs = gl.createShader(gl.VERTEX_SHADER);
+          gl.shaderSource(vs, document.getElementById('vs').textContent);
+          gl.compileShader(vs);
+          if (!gl.getShaderParameter(vs, gl.COMPILE_STATUS)) {
+            throw gl.getShaderInfoLog(vs);
+          }
+
+          fs = gl.createShader(gl.FRAGMENT_SHADER);
+          gl.shaderSource(fs, document.getElementById('fs').textContent);
+          gl.compileShader(fs);
+          if (!gl.getShaderParameter(fs, gl.COMPILE_STATUS)) {
+            throw gl.getShaderInfoLog(fs);
+          }
+
+          program = gl.createProgram();
+          gl.attachShader(program, vs);
+          gl.attachShader(program, fs);
+          gl.linkProgram(program);
+          if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+            throw gl.getProgramInfoLog(program);
+          }
+          gl.useProgram(program);
+
+          aVertexPosition = gl.getAttribLocation(program, 'aVertexPosition');
+          aVertexVelocity = gl.getAttribLocation(program, 'aVertexVelocity');
+          gl.enableVertexAttribArray(aVertexPosition);
+          gl.enableVertexAttribArray(aVertexVelocity);
+
+          // setup view
+          gl.viewport(0, 0, canvas.width, canvas.height);
+
+          // setup matrices
+          program.uPMatrix = gl.getUniformLocation(program, 'uPMatrix');
+          program.uMVMatrix = gl.getUniformLocation(program, 'uMVMatrix');
+          program.uTime = gl.getUniformLocation(program, 'uTime');
+
+          mat4.perspective(pMatrix, 45, canvas.width / canvas.height, 0.1, 100.0);
+          mat4.identity(mvMatrix);
+          mat4.translate(mvMatrix, mvMatrix, vec3.fromValues(0.0, -5.0, -50.0));
+
+          // set uniforms here and not in the animation loop
+          setMatrixUniforms();
+
+          gl.disable(gl.DEPTH_TEST);
+          gl.enable(gl.BLEND);
+          gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+          adjustParticles();
+
+          pointBuffer = gl.createBuffer();
+
+          (function animLoop() {
+            if (!paused) {
+              setupWebGl();
+              // setMatrixUniforms();
+
+              drawScene();
+              adjustParticles();
+            }
+            requestAnimationFrame(animLoop);
+          }());
+
+        }
+
+        function setupWebGl() {
+          gl.clearColor(0.1, 0.1, 0.1, 1.0);
+          gl.clear(gl.COLOR_BUFFER_BIT);
+        }
+
+        function adjustParticles() {
+          var cloned = particles.slice()
+            , i = 0
+            , l = cloned.length
+            , old
+            , direction;
+
+          particles = [];
+
+          for ( ; i < l; i += PARTICLE_COMPONENTS) {
+            if (cloned[i + 3] < LIFESPAN && cloned[i + 1] > START_Y - 0.001) {
+              old = cloned.slice(i, i + PARTICLE_COMPONENTS);
+              old[3] += 1.0;
+              particles = particles.concat(old);
+            }
+          }
+
+          numParticles = particles.length / PARTICLE_COMPONENTS;
+
+          // spawn new partiles
+          if (numParticles + MAX_SPAWN_PER_FRAME < MAX_NUMBER_OF_PARTICLES) {
+            for (i = 0; i < MAX_SPAWN_PER_FRAME; ++i) {
+
+              direction = Math.random() < 0.5 ? 2.0 : -2.0;
+
+              // particle components: x, y, z, life, velx, vely, size
+
+              particles.push(0.5 * Math.random() - 0.75);
+              particles.push(START_Y + Math.random());
+              particles.push(Math.random() * 0.5);
+              particles.push(0.0);
+              particles.push((15.0 * Math.random() - 10.0) * direction);
+              particles.push((14.0 + 12.0 * Math.random()) * direction * 0.25);
+              particles.push(0.5 + Math.random() * 5.0);
+
+              ++numParticles;
+            }
+          }
+        }
+
+
+        function drawScene() {
+          // gl.uniform1f(program.uTime, d.getTime());
+
+          // pointBuffer.itemSize = PARTICLE_COMPONENTS;
+          // pointBuffer.numItems = numParticles;
+
+          gl.bindBuffer(gl.ARRAY_BUFFER, pointBuffer);
+          gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(particles), gl.STATIC_DRAW);
+
+          gl.vertexAttribPointer(aVertexPosition, 4, gl.FLOAT, false, PARTICLE_COMPONENTS * Float32Array.BYTES_PER_ELEMENT, 0 * Float32Array.BYTES_PER_ELEMENT);
+          gl.vertexAttribPointer(aVertexVelocity, 3, gl.FLOAT, false, PARTICLE_COMPONENTS * Float32Array.BYTES_PER_ELEMENT, 4 * Float32Array.BYTES_PER_ELEMENT);
+
+          gl.drawArrays(gl.POINTS, 0, numParticles);
+        }
+
+        function setMatrixUniforms() {
+          gl.uniformMatrix4fv(program.uPMatrix, false, pMatrix);
+          gl.uniformMatrix4fv(program.uMVMatrix, false, mvMatrix);
+        }
+
+        function onResize() {
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+
+          gl.viewport(0, 0, canvas.width, canvas.height);
+        }
+
+        function onKeyDown(e) {
+          paused = !paused;
+        }
+
+        window.addEventListener('resize', onResize, false);
+        document.body.addEventListener('keydown', onKeyDown, false);
+
+        init();
+      };
+    </script>
+  <script src="assets/menu.js"></script>
+  </body>
+</html>
