@@ -170,6 +170,21 @@
         "img": "img/gl-plasma.jpg",
         "type": "html",
         "url": "files/gl-plasma.html"
+      },
+      {
+        "img": "img/gl-walk-01.png",
+        "type": "html",
+        "url": "files/gl-walk-01.html"
+      },
+      {
+        "img": "img/gl-walk-02.png",
+        "type": "html",
+        "url": "files/gl-walk-02.html"
+      },
+      {
+        "img": "img/gl-walk-03.png",
+        "type": "html",
+        "url": "files/gl-walk-03.html"
       }
     ]
   }

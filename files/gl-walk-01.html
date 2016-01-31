@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { overflow:hidden;margin:0;width:100%;height:100%; }
+    canvas { display:block;-webkit-transform: translateZ(0); }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+
+  <script type="x-shader/x-vertex" id="vs">
+    attribute vec4 aPosition;
+
+    void main() {
+      gl_PointSize = 2.0;
+      gl_Position = aPosition;
+    }
+  </script>
+
+  <script  type="x-shader/x-fragment" id="fs">
+    precision mediump float;
+
+    void main() {
+      gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+    }
+  </script>
+
+  <script>
+    var utils = {};
+
+    utils.createShader = function (gl, src, type) {
+      var shader = gl.createShader(type);
+      gl.shaderSource(shader, src);
+      gl.compileShader(shader);
+      var err;
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        err = gl.getShaderInfoLog(shader);
+        gl.deleteShader(shader);
+        throw err;
+      }
+      return shader;
+    };
+
+    utils.randomRange = function (min, max) {
+      return min + Math.random() * (max - min);
+    };
+
+    utils.map = function (n, start1, stop1, start2, stop2) {
+      return ((n - start1) / (stop1 - start1)) * (stop2 - start2) + start2;
+    };
+
+    window.addEventListener('load', function () {
+
+      var winW = window.innerWidth;
+      var winH = window.innerHeight;
+      var canvas = document.getElementById('canvas');
+      var canvasRect = canvas.getBoundingClientRect();
+
+      var particle = createParticle(winW, winH);
+
+      var numParticles = 0;
+      var maxParticles = 1000;
+
+      var lastTime = 0;
+
+      var gl;
+      var info;
+      var aPositionBuffer;
+      var aPositions = [];
+
+      init();
+
+      function init() {
+        canvas.width = winW;
+        canvas.height = winH;
+
+        gl = canvas.getContext('webgl');
+        if (!gl) {
+          throw 'Failed to initialize WebGL';
+        }
+
+        initShaders();
+        initBuffers();
+
+        gl.viewport(0, 0, gl.canvas.clientWidth, gl.canvas.clientHeight);
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.disable(gl.DEPTH_TEST);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+
+        tick();
+      }
+
+      function initShaders() {
+        var src, vShader, fShader, progam;
+
+        src = document.getElementById('vs').textContent;
+        vShader = utils.createShader(gl, src, gl.VERTEX_SHADER);
+
+        src = document.getElementById('fs').textContent;
+        fShader = utils.createShader(gl, src, gl.FRAGMENT_SHADER);
+
+        var program = gl.createProgram();
+        gl.attachShader(program, vShader);
+        gl.attachShader(program, fShader);
+        gl.linkProgram(program);
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+          err = gl.getProgramInfoLog(program);
+          gl.deleteProgram(program);
+          throw err;
+        }
+        gl.useProgram(program);
+
+        info = {
+          aPosition: gl.getAttribLocation(program, 'aPosition')
+        };
+
+      }
+
+      function initBuffers() {
+        aPositionBuffer = gl.createBuffer();
+        gl.enableVertexAttribArray(info.aPosition);
+      }
+
+      function tick() {
+        var now, elapsed;
+
+        requestAnimationFrame(tick);
+
+        now = new Date().getTime();
+        if (lastTime) {
+          elapsed = now - lastTime;
+          // update animation values
+          // time += (20 * elapsed) / 1000.0;
+        }
+        lastTime = now;
+        draw();
+      }
+
+      function draw() {
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        update();
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, aPositionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(aPositions), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(info.aPosition, 2, gl.FLOAT, false, 2 * Float32Array.BYTES_PER_ELEMENT, 0);
+        gl.drawArrays(gl.POINTS, 0, aPositions.length / 2);
+
+      }
+
+      function createParticle(w, h) {
+        return {
+          x: w / 2 + utils.randomRange(-2, 2),
+          y: h / 2 + utils.randomRange(-2, 2),
+          w: winW,
+          h: winH,
+          tx: 0,
+          ty: utils.randomRange(-100, 100),
+          life: 400
+        };
+      }
+
+      function update() {
+
+        var speedX = utils.randomRange(-5, 5);
+        var speedY = utils.randomRange(-5, 5);
+        particle.x += speedX;
+        particle.y += speedY;
+
+        if (particle.x > particle.w) {
+          particle.x = 0;
+        } else if (particle.x < 0) {
+          particle.x = particle.w;
+        }
+
+        if (particle.y > particle.h) {
+          particle.y = 0;
+        } else if (particle.y < 0) {
+          particle.y = particle.h;
+        }
+
+        var x = ((particle.x - canvasRect.left) - canvas.width / 2) / (canvas.width / 2);
+        var y = (canvas.height / 2 - (particle.y - canvasRect.top)) / (canvas.height / 2);
+
+        aPositions.push(x, y);
+      };
+
+      window.addEventListener('resize', function () {
+        winW = window.innerWidth;
+        winH = window.innerHeight;
+        canvas.width = winW;
+        canvas.height = winH;
+        gl.viewport(0, 0, gl.canvas.clientWidth, gl.canvas.clientHeight);
+      }, false);
+
+    });
+  </script>
+</body>
+</html>
+
