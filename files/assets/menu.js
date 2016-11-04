@@ -6,7 +6,7 @@
     c = document.createTextNode(
       '.menu { text-align: left;padding: 4px;position: absolute; ' +
          'right: 0;bottom: 0;left: 0;opactity: 0.7;' +
-         'background-color: #000;color: #fff;font: 11px sans-serif;' +
+         'background-color: #000;color: #fff;font: 1.2em sans-serif;' +
          'text-transform: uppercase;font-weight: bold}' +
       '.menu a {text-decoration: none;color: #fff;text-transform: uppercase}' +
       '.menu a:hover {text-decoration: none; color: #ff00cc}' +
