@@ -42,11 +42,6 @@
         "url": "files/camripple.html"
       },
       {
-        "img": "img/catchdaball.png",
-        "type": "swf",
-        "url": "files/catchdaball.html"
-      },
-      {
         "img": "img/circles04.png",
         "type": "swf",
         "url": "files/circles04.html"
@@ -135,16 +130,6 @@
         "img": "img/pulses.png",
         "type": "html",
         "url": "files/pulses.html"
-      },
-      {
-        "img": "img/recursive01.png",
-        "type": "swf",
-        "url": "files/recursive01.html"
-      },
-      {
-        "img": "img/spectrum3d.png",
-        "type": "swf",
-        "url": "files/spectrum3d.html"
       },
       {
         "img": "img/swarm01.png",
