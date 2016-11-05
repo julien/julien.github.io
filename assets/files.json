@@ -112,11 +112,6 @@
         "url": "files/particles06.html"
       },
       {
-        "img": "img/photoslices.png",
-        "type": "swf",
-        "url": "files/photoslices.html"
-      },
-      {
         "img": "img/pixi-particles-01.png",
         "type": "html",
         "url": "files/pixi-particles-01.html"
@@ -135,11 +130,6 @@
         "img": "img/swarm01.png",
         "type": "html",
         "url": "files/swarm01.html"
-      },
-      {
-        "img": "img/trails01.png",
-        "type": "html",
-        "url": "files/trails01.html"
       },
       {
         "img": "img/worm01.png",
