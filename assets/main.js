@@ -6,6 +6,13 @@
     , tileGroup;
 
   tileGroup = document.querySelector('.tile-group');
+  var menu = document.querySelector('.menu');
+
+  menu.addEventListener('change', function () {
+    var o = menu.options[menu.selectedIndex];
+    if (!o || !o.value) return;
+    document.location.href = o.value;
+  });
 
   function shuffleArray (target) {
     var currentIndex = target.length, temporaryValue, randomIndex;
@@ -96,6 +103,9 @@
 
         if (files) {
           sortFiles(files);
+
+          menu.appendChild(createMenu(files));
+
           files = shuffleArray(files);
           layoutTiles();
         }
@@ -105,12 +115,18 @@
     xhr.send(null);
   }
 
-  window.onload = function () {
-    // check for "most" needed features
-    if (!detect.canvas() || !detect.webgl()) {
-      tileGroup.innerHTML = 'It seems that your browser doesn\'t support this website\'s requirements; maybe it\'s time to update it or try a newer one';
-      return;
+  function createMenu(files) {
+    var frag = document.createDocumentFragment();
+    for (var i = 0, l = files.length; i < l; i++) {
+      var op = document.createElement('option');
+      op.setAttribute('value', files[i].url);
+      op.innerHTML = files[i].url.replace(/\w+/, '');
+      frag.appendChild(op);
     }
+    return frag;
+  }
+
+  window.onload = function () {
     listFiles();
   };
 
