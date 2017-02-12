@@ -160,6 +160,10 @@
         "img": "img/gl-blobs-02.png",
         "type": "html",
         "url": "files/gl-blobs-02.html"
+      },
+      {
+        "type": "html",
+        "url": "files/gl-attractors-01.html"
       }
     ]
   }

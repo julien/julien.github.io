@@ -1,34 +1,10 @@
 (function () {
   'use strict';
 
-  var currentId = 0
-    , files = []
-    , tileGroup;
+  var files = [];
+  var list = document.querySelector('.list');
 
-  tileGroup = document.querySelector('.tile-group');
-  var menu = document.querySelector('.menu');
 
-  menu.addEventListener('change', function () {
-    var o = menu.options[menu.selectedIndex];
-    if (!o || !o.value) return;
-    document.location.href = o.value;
-  });
-
-  function shuffleArray (target) {
-    var currentIndex = target.length, temporaryValue, randomIndex;
-
-    while (0 !== currentIndex) {
-
-      randomIndex = Math.floor(Math.random() * currentIndex);
-      currentIndex -= 1;
-
-      temporaryValue = target[currentIndex];
-      target[currentIndex] = target[randomIndex];
-      target[randomIndex] = temporaryValue;
-    }
-
-    return target;
-  }
 
   function loadFile(index) {
     currentId = index;
@@ -52,46 +28,6 @@
     }
   }
 
-  function layoutTiles() {
-    var i
-      , l = files.length
-      , frag
-      , div
-      , img
-      , file;
-
-    frag = document.createDocumentFragment();
-
-    files.sort(function (a, b) {
-      if (a.type < b.type) {
-        return -1;
-      } else if (a.type > b.type) {
-        return 1;
-      }
-      return 0;
-    });
-
-    for (i = 0; i < l; i += 1) {
-      file = files[i];
-
-      div = document.createElement('div');
-      div.classList.add('tile');
-      div.classList.add('left');
-      div.setAttribute('data-file-type', file.type);
-
-
-      div.id = 'tile' + parseInt(i, 10);
-
-      img = document.createElement('img');
-      img.src = files[i].img;
-
-      div.appendChild(img);
-      div.onclick = onTileClick;
-
-      frag.appendChild(div);
-    }
-    tileGroup.appendChild(frag);
-  }
 
   function listFiles() {
     var xhr = new XMLHttpRequest();
@@ -102,12 +38,9 @@
         files = data.data.files;
 
         if (files) {
-          sortFiles(files);
 
-          menu.appendChild(createMenu(files));
+          list.appendChild(fileList(files));
 
-          files = shuffleArray(files);
-          layoutTiles();
         }
       }
     };
@@ -115,13 +48,15 @@
     xhr.send(null);
   }
 
-  function createMenu(files) {
+  function fileList(files) {
     var frag = document.createDocumentFragment();
     for (var i = 0, l = files.length; i < l; i++) {
-      var op = document.createElement('option');
-      op.setAttribute('value', files[i].url);
-      op.innerHTML = files[i].url.replace(/\w+/, '');
-      frag.appendChild(op);
+      var li = document.createElement('li');
+      var a = document.createElement('a')
+      a.setAttribute('href', files[i].url);
+      a.textContent = files[i].url.replace(/^\w+\//, '');
+      li.appendChild(a);
+      frag.appendChild(li);
     }
     return frag;
   }
