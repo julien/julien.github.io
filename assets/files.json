@@ -1,170 +1,40 @@
 {
   "data": {
     "files": [
-      {
-        "img": "img/404.png",
-        "type": "swf",
-        "url": "files/404.html"
-      },
-      {
-        "img": "img/animatedshape.png",
-        "type": "swf",
-        "url": "files/animatedshape.html"
-      },
-      {
-        "img": "img/ballswarm.png",
-        "type": "swf",
-        "url": "files/ballswarm.html"
-      },
-      {
-        "img": "img/bit101-01.png",
-        "type": "html",
-        "url": "files/bit101-01.html"
-      },
-      {
-        "img": "img/bitmapballpool.png",
-        "type": "swf",
-        "url": "files/bitmapballpool.html"
-      },
-      {
-        "img": "img/camcapture.png",
-        "type": "html",
-        "url": "files/camcapture.html"
-      },
-      {
-        "img": "img/campixels.png",
-        "type": "html",
-        "url": "files/campixels.html"
-      },
-      {
-        "img": "img/camripple.png",
-        "type": "html",
-        "url": "files/camripple.html"
-      },
-      {
-        "img": "img/circles04.png",
-        "type": "swf",
-        "url": "files/circles04.html"
-      },
-      {
-        "img": "img/filterswarm.png",
-        "type": "swf",
-        "url": "files/filterswarm.html"
-      },
-      {
-        "img": "img/game.png",
-        "type": "swf",
-        "url": "files/game.html"
-      },
-      {
-        "img": "img/gl_particles.png",
-        "type": "html",
-        "url": "files/gl_particles.html"
-      },
-      {
-        "img": "img/mask01.png",
-        "type": "swf",
-        "url": "files/mask01.html"
-      },
-      {
-        "img": "img/p2pchat.png",
-        "type": "swf",
-        "url": "files/p2pchat.html"
-      },
-      {
-        "img": "img/particles01.png",
-        "type": "html",
-        "url": "files/particles01.html"
-      },
-      {
-        "img": "img/particles02.png",
-        "type": "html",
-        "url": "files/particles02.html"
-      },
-      {
-        "img": "img/particles03.png",
-        "type": "html",
-        "url": "files/particles03.html"
-      },
-      {
-        "img": "img/particles04.png",
-        "type": "html",
-        "url": "files/particles04.html"
-      },
-      {
-        "img": "img/particles05.png",
-        "type": "html",
-        "url": "files/particles05.html"
-      },
-      {
-        "img": "img/particles06.png",
-        "type": "html",
-        "url": "files/particles06.html"
-      },
-      {
-        "img": "img/pixi-particles-01.png",
-        "type": "html",
-        "url": "files/pixi-particles-01.html"
-      },
-      {
-        "img": "img/pixi-particles-02.png",
-        "type": "html",
-        "url": "files/pixi-particles-02.html"
-      },
-      {
-        "img": "img/pulses.png",
-        "type": "html",
-        "url": "files/pulses.html"
-      },
-      {
-        "img": "img/swarm01.png",
-        "type": "html",
-        "url": "files/swarm01.html"
-      },
-      {
-        "img": "img/worm01.png",
-        "type": "swf",
-        "url": "files/worm01.html"
-      },
-      {
-        "img": "img/pixi-05.png",
-        "type": "html",
-        "url": "files/pixi-05.html"
-      },
-      {
-        "img": "img/gl-plasma.jpg",
-        "type": "html",
-        "url": "files/gl-plasma.html"
-      },
-      {
-        "img": "img/gl-walk-01.png",
-        "type": "html",
-        "url": "files/gl-walk-01.html"
-      },
-      {
-        "img": "img/gl-walk-02.png",
-        "type": "html",
-        "url": "files/gl-walk-02.html"
-      },
-      {
-        "img": "img/gl-walk-03.png",
-        "type": "html",
-        "url": "files/gl-walk-03.html"
-      },
-      {
-        "img": "img/gl-blobs-01.png",
-        "type": "html",
-        "url": "files/gl-blobs-01.html"
-      },
-      {
-        "img": "img/gl-blobs-02.png",
-        "type": "html",
-        "url": "files/gl-blobs-02.html"
-      },
-      {
-        "type": "html",
-        "url": "files/gl-attractors-01.html"
-      }
+      "files/404.html",
+      "files/animatedshape.html",
+      "files/ballswarm.html",
+      "files/bit101-01.html",
+      "files/bitmapballpool.html",
+      "files/camcapture.html",
+      "files/campixels.html",
+      "files/camripple.html",
+      "files/circles04.html",
+      "files/filterswarm.html",
+      "files/game.html",
+      "files/gl_particles.html",
+      "files/mask01.html",
+      "files/p2pchat.html",
+      "files/particles01.html",
+      "files/particles02.html",
+      "files/particles03.html",
+      "files/particles04.html",
+      "files/particles05.html",
+      "files/particles06.html",
+      "files/pixi-particles-01.html",
+      "files/pixi-particles-02.html",
+      "files/pulses.html",
+      "files/swarm01.html",
+      "files/worm01.html",
+      "files/pixi-05.html",
+      "files/gl-plasma.html",
+      "files/gl-walk-01.html",
+      "files/gl-walk-02.html",
+      "files/gl-walk-03.html",
+      "files/gl-blobs-01.html",
+      "files/gl-blobs-02.html",
+      "files/gl-attractors-01.html",
+      "files/gl-attractors-02.html"
     ]
   }
 }

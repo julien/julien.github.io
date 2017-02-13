@@ -4,31 +4,6 @@
   var files = [];
   var list = document.querySelector('.list');
 
-
-
-  function loadFile(index) {
-    currentId = index;
-    document.location.href = files[currentId].url;
-  }
-
-  function onTileClick(e) {
-    var id = e.currentTarget.id.replace('tile', '');
-    loadFile(parseInt(id, 10));
-  }
-
-  function sortFiles(files) {
-    // custom filtering
-    // - no "type" attribute means something we don't want to show
-    var i;
-
-    for (i = files.length - 1; i >= 0; i -= 1) {
-      if (!files[i].type) {
-        files.splice(i, 1);
-      }
-    }
-  }
-
-
   function listFiles() {
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
@@ -53,8 +28,8 @@
     for (var i = 0, l = files.length; i < l; i++) {
       var li = document.createElement('li');
       var a = document.createElement('a')
-      a.setAttribute('href', files[i].url);
-      a.textContent = files[i].url.replace(/^\w+\//, '');
+      a.setAttribute('href', files[i]);
+      a.textContent = files[i].replace(/^\w+\//, '');
       li.appendChild(a);
       frag.appendChild(li);
     }
