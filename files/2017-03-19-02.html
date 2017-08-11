@@ -1,0 +1,278 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
+  <style>
+    body,html{margin:0;width:100%;height:100%;overflow:hidden;}
+    #canvas{display: block;}
+  </style>
+</head>
+<body>
+
+  <canvas id="canvas" width="512" height="512"></canvas>
+
+  <script id="vshader" type="x-shader/x-vertex">
+    attribute vec2 a_Position;
+    uniform vec2 u_Resolution;
+    uniform float u_PointSize;
+
+    void main () {
+      vec2 zeroToOne = a_Position / u_Resolution;
+      vec2 zeroToTwo = zeroToOne * 2.0;
+      vec2 clipSpace = zeroToTwo - 1.0;
+      gl_PointSize = u_PointSize;
+      gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 1.0, 1.0);
+    }
+  </script>
+
+  <script id="fshader" type="x-shader/x-fragment">
+    precision lowp float;
+    void main () {
+      gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+    }
+  </script>
+
+  <script>
+    window.addEventListener('load', () => {
+
+      const canvas = document.getElementById('canvas');
+      canvas.width = innerWidth;
+      canvas.height = innerHeight;
+
+      const gl = canvas.getContext('webgl');
+      if (!gl) { throw new Error('failed to initialize WebGL'); }
+
+      let program;
+      let info;
+
+      let width = innerWidth;
+      let height = innerHeight;
+
+      let start_time = Date.now();
+
+      let points = [];
+      let pointSize = 9;
+
+      const res = 20;
+
+      let mouseK = 0.6;
+      let mouseMaxRadius = 200;
+      let mouseMinRadius = 20;
+      let mouseRadius = mouseMinRadius;
+      let mouseRadiusInc = 2.0;
+      let mouseX = width / 2;
+      let mouseY = height / 2;
+      let mouseIsDown = false;
+
+      document.addEventListener('mousemove', mouseMove, false);
+      document.addEventListener('mousedown', mouseDown, false);
+      document.addEventListener('mouseup', mouseUp, false);
+
+      init();
+
+      function init() {
+        const vshader = document.getElementById('vshader').textContent;
+        const fshader = document.getElementById('fshader').textContent;
+
+        program = createProgram(gl, vshader, fshader);
+        gl.useProgram(program);
+        info = getProgramInfo(gl, program);
+
+        gl.clearColor(0, 0, 0, 1);
+        gl.viewport(0, 0, gl.canvas.clientWidth, gl.canvas.clientHeight);
+        gl.uniform2f(info.u_Resolution, gl.canvas.clientWidth, gl.canvas.clientHeight);
+        gl.uniform1f(info.u_PointSize, 2.0);
+
+        initBuffers();
+        loop();
+      }
+
+      function initBuffers() {
+        vertexBuffer = gl.createBuffer();
+        if (!vertexBuffer) {
+          return -1;
+        }
+
+        for (let x = res / 2; x <= width; x += res) {
+          for (let y = res / 2; y <= height; y += res) {
+            points.push(
+              // x, y
+              x,
+              y,
+
+              // vx, yv
+              0,
+              0,
+
+              // damp, bounce
+              0.5,
+              -1,
+
+              // target x, y, k
+              x,
+              y,
+              0.03
+            );
+          }
+        }
+
+        let vertexData = new Float32Array(points);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, vertexData, gl.DYNAMIC_DRAW);
+
+        const FSIZE = vertexData.BYTES_PER_ELEMENT;
+        const stride = FSIZE * pointSize;
+
+        gl.vertexAttribPointer(info.a_Position, 2, gl.FLOAT, false, stride, 0);
+        gl.enableVertexAttribArray(info.a_Position);
+
+        let num = vertexData.length / pointSize;
+        return num;
+      }
+
+
+      function loop() {
+        requestAnimationFrame(loop);
+        resizeCanvas(gl, innerWidth, innerHeight);
+
+        if (mouseIsDown) {
+          if (mouseRadius <= mouseMaxRadius) {
+            mouseRadius += mouseRadiusInc;
+          }
+        } else {
+          if (mouseRadius > mouseMinRadius) {
+            mouseRadius -= mouseRadiusInc;
+          }
+        }
+
+        updatePoints();
+        const num = points.length / pointSize;
+
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(gl.POINTS,  0, num);
+      }
+
+      function updatePoints() {
+        const len = points.length;
+        for (let i = 0; i < len; i += pointSize) {
+
+          const dx = points[i] - mouseX;
+          const dy = points[i+1] - mouseY;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+
+          if (dist < mouseRadius) {
+            const tx = mouseX + dx / dist * mouseRadius;
+            const ty = mouseY + dy / dist * mouseRadius;
+
+            points[i+2] += (tx - points[i])   * mouseK;
+            points[i+3] += (ty - points[i+1]) * mouseK;
+          }
+
+          // vel += target - pos * spring
+          points[i+2] += (points[i+6] - points[i])   * points[i+8];
+          points[i+3] += (points[i+7] - points[i+1]) * points[i+8];
+
+          // pos += vel
+          points[i]   += points[i+2];
+          points[i+1] += points[i+3];
+
+          // vel *= damp
+          points[i+2] *= points[i+4];
+          points[i+3] *= points[i+4];
+
+          // check edges
+          if (points[i] > width) {
+            points[i] = width;
+            points[i+2] *= -1;
+          } else if (points[i] < 0) {
+            points[i] = 0;
+            points[i+2] *= -1;
+          }
+
+          if (points[i+1] > height) {
+            points[i+1] = height;
+            points[i+3] *= -1;
+          } else if (points[i+1] < 0) {
+            points[i+1] = 0;
+            points[i+3] *= -1;
+          }
+
+        }
+
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(points), gl.DYNAMIC_DRAW);
+      }
+
+      function resizeCanvas(gl, w, h) {
+        if (gl.canvas.width !== w || gl.canvas.height !== h) {
+          gl.canvas.width = w;
+          gl.canvas.height = h;
+          gl.viewport(0, 0, gl.canvas.clientWidth, gl.canvas.clientHeight);
+          gl.uniform2f(info.u_Resolution, gl.canvas.clientWidth, gl.canvas.clientHeight);
+        }
+      }
+
+      function mouseMove(e) {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+      }
+
+      function mouseDown() { mouseIsDown = true; }
+      function mouseUp() { mouseIsDown = false; }
+
+      function createShader(gl, str, type) {
+        const shader = gl.createShader(type);
+        gl.shaderSource (shader, str);
+        gl.compileShader(shader);
+        const r = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+        if (r) {
+          return shader;
+        }
+        const e = gl.getShaderInfoLog(shader);
+        gl.deleteShader(shader);
+        throw new Error(e);
+      }
+
+      function createProgram(gl, vs, fs) {
+        const program = gl.createProgram();
+        const vshader = createShader(gl, vs, gl.VERTEX_SHADER);
+        const fshader = createShader(gl, fs, gl.FRAGMENT_SHADER);
+        gl.attachShader(program, fshader);
+        gl.attachShader(program, vshader);
+        gl.linkProgram(program);
+        const r = gl.getProgramParameter(program, gl.LINK_STATUS);
+        if (r) {
+          return program;
+        }
+        const e = gl.getProgramInfoLog(program);
+        gl.deleteProgram(program);
+        throw new Error(e);
+      }
+
+      function getProgramInfo(gl, program) {
+        let attrs = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
+        let info = {};
+        for (let i = 0; i < attrs; i++) {
+          let attr = gl.getActiveAttrib(program, i);
+          if (!attr) { continue; }
+          info[attr.name] = gl.getAttribLocation(program, attr.name);
+        }
+
+        let unis = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+        for (let i = 0; i < unis; i++) {
+          let uni = gl.getActiveUniform(program, i);
+          if (!uni) {  continue; }
+          info[uni.name] = gl.getUniformLocation(program, uni.name);
+        }
+
+        return info;
+      }
+
+    }, false);
+  </script>
+</body>
+</html>
+
+

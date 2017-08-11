@@ -1,6 +1,5 @@
 (function () {
   'use strict';
-
   var files = [];
   var list = document.querySelector('.list');
 
@@ -10,7 +9,7 @@
       var data;
       if (xhr.readyState === 4 && xhr.status === 200) {
         data = JSON.parse(xhr.responseText);
-        files = data.data.files;
+        files = data.files;
 
         if (files) {
 
