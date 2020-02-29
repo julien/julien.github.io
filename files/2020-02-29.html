@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta
+			name="viewport"
+			content="width=device-width,minimum-scale=1,initial-scale=1"
+		/>
+		<style>
+			body,
+			html {
+				margin: 0;
+				width: 100%;
+				height: 100%;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+		<canvas id="c"></canvas>
+		<script>
+			onload = function() {
+				var WIDTH = innerWidth;
+				var HEIGHT = innerHeight;
+				var NUM_BLOBS = 120;
+				var BLOB_SIZE = 14;
+
+				var c = document.getElementById("c");
+				c.width = WIDTH;
+				c.height = HEIGHT;
+
+				var g = c.getContext("webgl");
+				if (!g) throw "failed to initialize WebGL";
+
+				var vertexShader = `precision lowp float;
+				attribute vec2 position;
+
+				void main() {
+					gl_Position = vec4(position, .0, 1.);
+				}`;
+
+				var fragmentShader = `precision lowp float;
+				uniform vec3 blobs[${NUM_BLOBS}];
+				const float WIDTH = ${WIDTH}.0;
+				const float HEIGHT = ${HEIGHT}.0;
+
+				void main() {
+					float x = gl_FragCoord.x;
+					float y = gl_FragCoord.y;
+					float v = 0.0;
+
+					for (int i = 0; i < ${NUM_BLOBS}; i++) {
+						vec3 b = blobs[i];
+						float dx = b.x - x;
+						float dy = b.y - y;
+						float r = b.z;
+						v += r*r / (dx*dx + dy*dy);
+					}
+					if (v > 1.0) {
+						gl_FragColor = vec4((x / WIDTH), 0., (y / HEIGHT), 1.0);
+					} else {
+						gl_FragColor = vec4(0., 0., 0., 1.);
+					}
+				}
+				`;
+
+				var prog = g.createProgram();
+				var s;
+
+				g.shaderSource((s = g.createShader(g.VERTEX_SHADER)), vertexShader);
+				g.compileShader(s);
+				g.attachShader(prog, s);
+
+				g.shaderSource((s = g.createShader(g.FRAGMENT_SHADER)), fragmentShader);
+				g.compileShader(s);
+				g.attachShader(prog, s);
+
+				g.blendFunc(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA);
+				g.enable(g.BLEND);
+
+				g.linkProgram(prog);
+				g.useProgram(prog);
+
+				var vertices = new Float32Array([
+					-1.0,
+					1.0,
+					-1.0,
+					-1.0,
+					1.0,
+					1.0,
+					1.0,
+					-1.0
+				]);
+
+				var verticesBuffer = g.createBuffer();
+				g.bindBuffer(g.ARRAY_BUFFER, verticesBuffer);
+				g.bufferData(g.ARRAY_BUFFER, vertices, g.STATIC_DRAW);
+
+				var locPosition = g.getAttribLocation(prog, "position");
+				g.enableVertexAttribArray(locPosition);
+				g.vertexAttribPointer(locPosition, 2, g.FLOAT, g.FALSE, 2 * 4, 0);
+
+				var locBlobs = g.getUniformLocation(prog, "blobs");
+
+				var blobs = [];
+				for (var i = 0; i < NUM_BLOBS; i++) {
+					var radius = 5 + Math.random() * (10 - 5);
+
+					blobs.push(
+						// x, y, radius [0,1,2]
+						Math.random() * (WIDTH - 2 * radius) + radius,
+						Math.random() * (HEIGHT - 2 * radius) + radius,
+						radius,
+
+						// acceleration [3,4,5]
+						1 + Math.random() * (3 - 1),
+						1 + Math.random() * (3 - 1),
+						0.02 + Math.random() * (0.07 - 0.02),
+
+						// velocity [6,7]
+						2 + Math.random() * (4 - 2),
+						2 + Math.random() * (4 - 2),
+
+						// next values [8,9,10]
+						Math.random() * (WIDTH - 2 * radius) + radius,
+						Math.random() * (HEIGHT - 2 * radius) + radius,
+						10 + Math.random() * (20 - 10),
+
+						// easing [11,12,13]
+						0.02 + Math.random() * (0.07 - 0.02),
+						0.02 + Math.random() * (0.07 - 0.02),
+						0.01 + Math.random() * (0.02 - 0.01)
+					);
+				}
+
+				requestAnimationFrame(function loop() {
+					requestAnimationFrame(loop);
+
+					var len = NUM_BLOBS * BLOB_SIZE;
+
+					for (var i = 0; i < len; i += BLOB_SIZE) {
+						blobs[i + 6] += blobs[i + 3];
+						blobs[i + 7] += blobs[i + 4];
+
+						blobs[i + 3] *= 0;
+						blobs[i + 4] *= 0;
+
+						if (blobs[i + 0] - blobs[i + 2] < 0) {
+							blobs[i + 0] = blobs[i + 2] + 1;
+							blobs[i + 6] *= -1;
+						} else if (blobs[i + 0] + blobs[i + 2] > WIDTH) {
+							blobs[i + 0] = WIDTH - blobs[i + 2];
+							blobs[i + 6] *= -1;
+						}
+
+						if (blobs[i + 1] - blobs[i + 2] < 0) {
+							blobs[i + 1] = blobs[i + 2];
+							blobs[i + 7] *= -1;
+						} else if (blobs[i + 1] + blobs[i + 2] > HEIGHT) {
+							blobs[i + 1] = HEIGHT - blobs[i + 2];
+							blobs[i + 7] *= -1;
+						}
+
+						blobs[i + 0] += blobs[i + 6];
+						blobs[i + 1] += blobs[i + 7];
+
+						var vx = blobs[i + 8] - blobs[i + 0];
+						var vy = blobs[i + 9] - blobs[i + 1];
+						var vr = blobs[i + 10] - blobs[i + 2];
+
+						var ax = Math.abs(vx) > 0.1;
+						var ay = Math.abs(vy) > 0.1;
+						var ar = Math.abs(vr) > 0.1;
+
+						if (ax && ay && ar) {
+							vx *= blobs[i + 11];
+							vy *= blobs[i + 12];
+							vr *= blobs[i + 13];
+
+							blobs[i + 0] += vx;
+							blobs[i + 1] += vy;
+							blobs[i + 2] += vr;
+						} else {
+							blobs[i + 11] = 0.02 + Math.random() * (0.07 - 0.02);
+							blobs[i + 12] = 0.02 + Math.random() * (0.07 - 0.02);
+							blobs[i + 13] = 0.01 + Math.random() * (0.02 - 0.01);
+
+							var radius = 10 + Math.random() * (20 - 10);
+							blobs[i + 8] = Math.random() * (WIDTH - 2 * radius) + radius;
+							blobs[i + 9] = Math.random() * (HEIGHT - 2 * radius) + radius;
+							blobs[i + 10] = radius;
+						}
+					}
+
+					var data = new Float32Array(3 * NUM_BLOBS);
+					for (var i = 0, j = 0; i < len; i += BLOB_SIZE, j += 3) {
+						data[j + 0] = blobs[i + 0];
+						data[j + 1] = blobs[i + 1];
+						data[j + 2] = blobs[i + 2];
+					}
+
+					g.uniform3fv(locBlobs, data);
+					g.drawArrays(g.TRIANGLE_STRIP, 0, 4);
+				});
+			};
+		</script>
+	</body>
+</html>
