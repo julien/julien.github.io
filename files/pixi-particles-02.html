@@ -1,223 +1,237 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <style>
-    html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden}
-  </style>
-</head>
-<body>
-  <script src="assets/pixi.dev.151.js"></script>
-  <script>
-    window.onload = function () {
+	<head>
+		<style>
+			html,
+			body {
+				margin: 0;
+				padding: 0;
+				width: 100%;
+				height: 100%;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+		<script src="assets/pixi.dev.151.js"></script>
+		<script>
+			window.onload = function() {
+				var screenW,
+					screenH,
+					stage,
+					renderer,
+					canvas,
+					spriteBatch,
+					particles = [],
+					generator,
+					particleTexture,
+					mouse,
+					dragging;
 
-      var screenW
-        , screenH
-        , stage
-        , renderer
-        , canvas
-        , spriteBatch
-        , particles = []
-        , generator
-        , particleTexture
-        , mouse
-        , dragging
-        ;
+				function captureMouse(el) {
+					var mouse = { x: 0, y: 0, down: false };
 
-      function captureMouse(el) {
-        var mouse = { x: 0, y: 0, down: false };
+					el.addEventListener(
+						"mousemove",
+						function(e) {
+							var x, y, body, doc;
+							if (e.pageX || e.pageY) {
+								x = e.pageX;
+								y = e.pageY;
+							} else {
+								body = document.body;
+								doc = document.documentElement;
+								x = e.clientX + body.scrollLeft + doc.scrollLeft;
+								y = e.clientY + body.scrollTop + doc.scrollTop;
+							}
+							x -= el.offsetLeft;
+							y -= el.offsetTop;
+							mouse.x = x;
+							mouse.y = y;
+						},
+						false
+					);
 
-        el.addEventListener('mousemove', function (e) {
-          var x, y, body, doc;
-          if (e.pageX || e.pageY) {
-            x = e.pageX;
-            y = e.pageY;
-          } else {
-            body = document.body;
-            doc = document.documentElement;
-            x = e.clientX + body.scrollLeft + doc.scrollLeft;
-            y = e.clientY + body.scrollTop + doc.scrollTop;
-          }
-          x -= el.offsetLeft;
-          y -= el.offsetTop;
-          mouse.x = x;
-          mouse.y = y;
-        }, false);
+					el.addEventListener(
+						"mousedown",
+						function() {
+							mouse.down = true;
+						},
+						false
+					);
 
-        el.addEventListener('mousedown', function () {
-          mouse.down = true;
-        }, false);
+					el.addEventListener(
+						"mouseup",
+						function() {
+							mouse.down = false;
+						},
+						false
+					);
 
-        el.addEventListener('mouseup', function () {
-          mouse.down = false;
-        }, false);
+					return mouse;
+				}
 
-        return mouse;
-      }
+				//---
 
+				function randomRange(min, max) {
+					if (isNaN(min)) {
+						min = 0;
+						max = 1;
+					} else if (isNaN(max)) {
+						max = min;
+						min = 0;
+					}
+					return Math.random() * (max - min) + min;
+				}
 
-      //---
+				function rotate2D(point, theta) {
+					var tmpx = point.x;
+					point.x = point.x * Math.cos(theta) - point.y * Math.sin(theta);
+					point.y = tmpx * Math.sin(theta) + point.y * Math.cos(theta);
+					return point;
+				}
 
-      function randomRange(min, max) {
-        if (isNaN(min)) {
-          min = 0;
-          max = 1;
-        } else if (isNaN(max)) {
-          max = min;
-          min = 0;
-        }
-        return (Math.random() * (max - min)) + min;
-      }
+				//---
+				particleTexture = new PIXI.Texture.fromImage("assets/particle03.png");
 
-      function rotate2D(point, theta) {
-        var tmpx = point.x;
-        point.x = point.x * Math.cos(theta) - point.y * Math.sin(theta);
-        point.y = tmpx * Math.sin(theta) + point.y * Math.cos(theta);
-        return point;
-      }
+				function Particle(x, y) {
+					PIXI.Sprite.call(this, particleTexture);
 
-      //---
-      particleTexture = new PIXI.Texture.fromImage('assets/particle03.png');
+					this.position.x = x;
+					this.position.y = y;
 
-      function Particle(x, y) {
-        PIXI.Sprite.call(this, particleTexture);
+					this.anchor.x = 0.5;
+					this.anchor.y = 0.5;
+					this.blendMode = PIXI.blendModes.ADD;
+					this.size = randomRange(10, 100);
+					this.width = this.height = this.size;
 
-        this.position.x = x;
-        this.position.y = y;
+					this.velocity = new PIXI.Point(randomRange(2, 4), randomRange(2, 4));
+					rotate2D(this.velocity, randomRange(0, Math.PI * 2));
+					this.force = new PIXI.Point(0, 1);
+				}
 
-        this.anchor.x = 0.5;
-        this.anchor.y = 0.5;
-        this.blendMode = PIXI.blendModes.ADD;
-        this.size = randomRange(10, 100);
-        this.width = this.height = this.size;
+				Particle.prototype = Object.create(PIXI.Sprite.prototype);
+				Particle.prototype.constructor = Particle;
 
-        this.velocity = new PIXI.Point(randomRange(2, 4), randomRange(2, 4));
-        rotate2D(this.velocity, randomRange(0, Math.PI * 2));
-        this.force = new PIXI.Point(0, 1);
-      }
+				Particle.prototype.update = function() {
+					++this.life;
 
-      Particle.prototype = Object.create(PIXI.Sprite.prototype);
-      Particle.prototype.constructor = Particle;
+					if (this.life === 20) {
+						this.velocity.x *= 0.8;
+						this.velocity.y *= 0.8;
+					}
 
-      Particle.prototype.update = function () {
-        ++this.life;
+					if (this.life < 20) {
+						this.size *= 0.99;
+					} else {
+						this.size *= 0.97;
+					}
+					this.position.x += this.velocity.x;
+					this.position.y += this.velocity.y;
 
-        if (this.life === 20) {
-          this.velocity.x *= 0.8;
-          this.velocity.y *= 0.8;
-        }
+					this.width = this.height = this.size;
+					rotate2D(this.velocity, randomRange(-Math.PI / 2, Math.PI / 4));
+				};
 
-        if (this.life < 20) {
-          this.size *= 0.99;
-        } else {
-          this.size *= 0.97;
-        }
-        this.position.x += this.velocity.x;
-        this.position.y += this.velocity.y;
+				Particle.prototype.alive = function() {
+					return this.size >= 1;
+				};
 
-        this.width = this.height = this.size;
-        rotate2D(this.velocity, randomRange(-Math.PI / 2, Math.PI / 4));
-      };
+				//---
 
-      Particle.prototype.alive = function () {
-        return this.size >= 1;
-      };
+				function addParticle(x, y) {
+					var particle = new Particle(x, y);
+					spriteBatch.addChild(particle);
+					particles.push(particle);
+				}
 
-      //---
+				function update() {
+					var it;
 
-      function addParticle(x, y) {
-        var particle = new Particle(x, y);
-        spriteBatch.addChild(particle);
-        particles.push(particle);
-      }
+					it = particles.length;
 
-      function update() {
-        var it;
+					// update
+					while ((it -= 1) >= 0) {
+						if (particles[it].alive()) {
+							particles[it].update();
+						}
+					}
 
-        it = particles.length;
+					it = particles.length;
+					// remove dead
+					while ((it -= 1) >= 0) {
+						if (!particles[it].alive()) {
+							spriteBatch.removeChild(particles[it]);
+							particles.splice(it, 1);
+						}
+					}
 
-        // update
-        while ((it -= 1) >= 0) {
-          if (particles[it].alive()) {
-            particles[it].update();
-          }
-        }
+					generator.x =
+						generator.centerX + Math.cos(generator.angleX) * generator.radiusX;
+					generator.y =
+						generator.centerY + Math.sin(generator.angleY) * generator.radiusY;
+					generator.angleX += generator.speedX;
+					generator.angleY += generator.speedY;
 
-        it = particles.length;
-        // remove dead
-        while ((it -= 1) >= 0) {
-          if (!particles[it].alive()) {
-            spriteBatch.removeChild(particles[it]);
-            particles.splice(it, 1);
-          }
-        }
+					addParticle(generator.x, generator.y);
 
-        generator.x = generator.centerX + Math.cos(generator.angleX) * generator.radiusX;
-        generator.y = generator.centerY + Math.sin(generator.angleY) * generator.radiusY;
-        generator.angleX += generator.speedX;
-        generator.angleY += generator.speedY;
+					renderer.render(stage);
+					requestAnimationFrame(update);
+				}
 
-        addParticle(generator.x, generator.y);
+				function init() {
+					screenW = window.innerWidth;
+					screenH = window.innerHeight;
 
-        renderer.render(stage);
-        requestAnimationFrame(update);
-      }
+					stage = new PIXI.Stage(0x000000);
+					renderer = PIXI.autoDetectRenderer(screenW, screenH);
+					document.body.appendChild(renderer.view);
 
-      function init() {
-        screenW = window.innerWidth;
-        screenH = window.innerHeight;
+					mouse = captureMouse(renderer.view);
 
-        stage = new PIXI.Stage(0x000000);
-        renderer = PIXI.autoDetectRenderer(screenW, screenH);
-        document.body.appendChild(renderer.view);
+					generator = new PIXI.Graphics();
+					generator.angleX = 0;
+					generator.angleY = 0;
+					generator.centerX = screenW / 2;
+					generator.centerY = screenH / 2;
+					generator.radiusX = randomRange(2, 30);
+					generator.radiusY = randomRange(2, 30);
+					generator.speedX = randomRange(10, 80);
+					generator.speedY = randomRange(-60, 60);
 
-        mouse = captureMouse(renderer.view);
+					spriteBatch = new PIXI.SpriteBatch();
+					stage.addChild(spriteBatch);
 
+					update();
+				}
 
-        generator = new PIXI.Graphics();
-        generator.angleX = 0;
-        generator.angleY = 0;
-        generator.centerX = screenW / 2;
-        generator.centerY = screenH / 2;
-        generator.radiusX = randomRange(2, 30);
-        generator.radiusY = randomRange(2, 30);
-        generator.speedX = randomRange(10, 80);
-        generator.speedY = randomRange(-60, 60);
+				function addRandomParticles(x, y) {
+					var count = randomRange(2, 20);
+					while ((count -= 1) >= 0) {
+						addParticle(x, y);
+					}
+				}
 
-        spriteBatch = new PIXI.SpriteBatch();
-        stage.addChild(spriteBatch);
+				function mouseMove() {
+					addRandomParticles(mouse.x, mouse.y);
 
-        update();
-      }
+					generator.centerX = mouse.x;
+					generator.centerY = mouse.y;
+				}
 
-      function addRandomParticles(x, y) {
-        var count = randomRange(2, 20);
-        while ((count -= 1) >= 0) {
-          addParticle(x, y);
-        }
-      }
+				document.onmousedown = function() {
+					dragging = 1;
+					document.addEventListener("mousemove", mouseMove, false);
+				};
 
-      function mouseMove() {
-        addRandomParticles(mouse.x, mouse.y);
+				document.onmouseup = function() {
+					document.removeEventListener("mousemove", mouseMove, false);
+					dragging = 0;
+				};
 
-        generator.centerX = mouse.x;
-        generator.centerY = mouse.y;
-      };
-
-      document.onmousedown = function () {
-        dragging = 1;
-        document.addEventListener('mousemove', mouseMove, false);
-      };
-
-      document.onmouseup = function () {
-        document.removeEventListener('mousemove', mouseMove, false);
-        dragging = 0;
-      };
-
-
-
-      init();
-    };
-
-  </script>
-</body>
+				init();
+			};
+		</script>
+	</body>
 </html>

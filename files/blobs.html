@@ -1,209 +1,228 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body { overflow:hidden;margin:0;width:100%;height:100%; }
-    canvas { display:block;-webkit-transform: translateZ(0); }
-  </style>
-</head>
-<body>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<style>
+			body {
+				overflow: hidden;
+				margin: 0;
+				width: 100%;
+				height: 100%;
+			}
+			canvas {
+				display: block;
+				-webkit-transform: translateZ(0);
+			}
+		</style>
+	</head>
+	<body>
+		<canvas id="canvas"></canvas>
 
-  <canvas id="canvas"></canvas>
+		<script type="x-shader/x-vertex" id="vs">
+			precision mediump float;
 
-  <script type="x-shader/x-vertex" id="vs">
-    precision mediump float;
+			attribute vec4 a_position;
+			uniform float u_time;
 
-    attribute vec4 a_position;
-    uniform float u_time;
+			void main() {
+			  gl_Position = a_position;
+			}
+		</script>
 
-    void main() {
-      gl_Position = a_position;
-    }
-  </script>
+		<script type="x-shader/x-fragment" id="fs">
+			precision mediump float;
 
-  <script  type="x-shader/x-fragment" id="fs">
-    precision mediump float;
+			uniform float u_time;
+			uniform vec2 u_resolution;
 
-    uniform float u_time;
-    uniform vec2 u_resolution;
+			void main() {
+			  vec2 p = -1.0 + 2.0 * gl_FragCoord.xy / u_resolution.xy;
 
-    void main() {
-      vec2 p = -1.0 + 2.0 * gl_FragCoord.xy / u_resolution.xy;
+			  vec2 v = vec2(2, -.5);
+			  float radius = 15.0;
 
-      vec2 v = vec2(2, -.5);
-      float radius = 15.0;
+			  vec2 b1 = vec2(0.25 * sin(u_time), 0.5 * cos(u_time));
+			  b1 *= v;
 
-      vec2 b1 = vec2(0.25 * sin(u_time), 0.5 * cos(u_time));
-      b1 *= v;
+			  vec2 b2 = vec2(0.5 * cos(u_time), 0.1 * sin(u_time));
+			  b2 *= -v;
 
-      vec2 b2 = vec2(0.5 * cos(u_time), 0.1 * sin(u_time));
-      b2 *= -v;
+			  vec2 b3 = vec2(0.4 * sin(u_time * 0.3), 0.3 * cos(u_time * 0.5));
+			  b3 *= v * 0.5;
 
-      vec2 b3 = vec2(0.4 * sin(u_time * 0.3), 0.3 * cos(u_time * 0.5));
-      b3 *= v * 0.5;
+			  vec2 b4 = vec2(0.1 * cos(u_time * 0.3) + sin(u_time * 0.6), 0.5 * cos(u_time * 0.1));
+			  b4 *= 0.1 * v;
 
-      vec2 b4 = vec2(0.1 * cos(u_time * 0.3) + sin(u_time * 0.6), 0.5 * cos(u_time * 0.1));
-      b4 *= 0.1 * v;
+			  float sum = 0.0;
 
-      float sum = 0.0;
+			  float d1 = distance(p, b1);
+			  sum += 0.01 * 15.0 / d1;
 
-      float d1 = distance(p, b1);
-      sum += 0.01 * 15.0 / d1;
+			  float d2 = distance(p, b2);
+			  sum += 0.03 * 10.0 / d2;
 
-      float d2 = distance(p, b2);
-      sum += 0.03 * 10.0 / d2;
+			  float d3 = distance(p, b3);
+			  sum += 0.07 * 3.0 / d3;
 
-      float d3 = distance(p, b3);
-      sum += 0.07 * 3.0 / d3;
+			  float d4 = distance(p, b4);
+			  sum += 0.01 * 4.0 / d4;
 
-      float d4 = distance(p, b4);
-      sum += 0.01 * 4.0 / d4;
+			  gl_FragColor = vec4(sum, sum * 0.3 , sum, 1.0);
+			}
+		</script>
 
-      gl_FragColor = vec4(sum, sum * 0.3 , sum, 1.0);
-    }
-  </script>
+		<script>
+			window.addEventListener("load", function() {
+				function createShader(gl, src, type) {
+					var shader = gl.createShader(type);
+					gl.shaderSource(shader, src);
+					gl.compileShader(shader);
+					var err;
+					if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+						err = gl.getShaderInfoLog(shader);
+						gl.deleteShader(shader);
+						throw err;
+					}
+					return shader;
+				}
 
+				var winW = window.innerWidth;
+				var winH = window.innerHeight;
+				var canvas = document.getElementById("canvas");
+				var lastTime = 0;
+				var gl;
+				var info;
+				var a_positionBuffer;
+				var a_positions = [];
+				var a_colors = [];
+				var u_time = 0;
 
+				init();
 
-  <script>
-    window.addEventListener('load', function () {
+				function init() {
+					canvas.width = winW;
+					canvas.height = winH;
 
-      function createShader(gl, src, type) {
-        var shader = gl.createShader(type);
-        gl.shaderSource(shader, src);
-        gl.compileShader(shader);
-        var err;
-        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-          err = gl.getShaderInfoLog(shader);
-          gl.deleteShader(shader);
-          throw err;
-        }
-        return shader;
-      }
+					gl = canvas.getContext("webgl");
+					if (!gl) {
+						throw Error("Failed to initialize WebGL");
+					}
 
-      var winW = window.innerWidth;
-      var winH = window.innerHeight;
-      var canvas = document.getElementById('canvas');
-      var lastTime = 0;
-      var gl;
-      var info;
-      var a_positionBuffer;
-      var a_positions = [];
-      var a_colors = [];
-      var u_time = 0;
+					initShaders();
+					initBuffers();
 
-      init();
+					gl.viewport(0, 0, gl.canvas.clientWidth, gl.canvas.clientHeight);
+					gl.clearColor(0.0, 0.0, 0.0, 1.0);
+					gl.disable(gl.DEPTH_TEST);
+					gl.enable(gl.BLEND);
+					gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
 
-      function init() {
-        canvas.width = winW;
-        canvas.height = winH;
+					tick();
+				}
 
-        gl = canvas.getContext('webgl');
-        if (!gl) {
-          throw Error( 'Failed to initialize WebGL' );
-        }
+				function initShaders() {
+					var src, vShader, fShader, progam;
 
-        initShaders();
-        initBuffers();
+					src = document.getElementById("vs").textContent;
+					vShader = createShader(gl, src, gl.VERTEX_SHADER);
 
-        gl.viewport(0, 0, gl.canvas.clientWidth, gl.canvas.clientHeight);
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.disable(gl.DEPTH_TEST);
-        gl.enable(gl.BLEND);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+					src = document.getElementById("fs").textContent;
+					fShader = createShader(gl, src, gl.FRAGMENT_SHADER);
 
-        tick();
-      }
+					var program = gl.createProgram();
+					gl.attachShader(program, vShader);
+					gl.attachShader(program, fShader);
+					gl.linkProgram(program);
+					if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+						err = gl.getProgramInfoLog(program);
+						gl.deleteProgram(program);
+						throw err;
+					}
+					gl.useProgram(program);
 
-      function initShaders() {
-        var src, vShader, fShader, progam;
+					info = {
+						a_position: gl.getAttribLocation(program, "a_position"),
+						u_time: gl.getUniformLocation(program, "u_time"),
+						u_resolution: gl.getUniformLocation(program, "u_resolution")
+					};
+				}
 
-        src = document.getElementById('vs').textContent;
-        vShader = createShader(gl, src, gl.VERTEX_SHADER);
+				function initBuffers() {
+					a_positionBuffer = gl.createBuffer();
+					gl.enableVertexAttribArray(info.a_position);
+					gl.bindBuffer(gl.ARRAY_BUFFER, a_positionBuffer);
 
-        src = document.getElementById('fs').textContent;
-        fShader = createShader(gl, src, gl.FRAGMENT_SHADER);
+					a_positions = [
+						-1.0,
+						-1.0,
+						1.0,
+						-1.0,
+						-1.0,
+						1.0,
+						-1.0,
+						1.0,
+						1.0,
+						-1.0,
+						1.0,
+						1.0
+					];
 
-        var program = gl.createProgram();
-        gl.attachShader(program, vShader);
-        gl.attachShader(program, fShader);
-        gl.linkProgram(program);
-        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-          err = gl.getProgramInfoLog(program);
-          gl.deleteProgram(program);
-          throw err;
-        }
-        gl.useProgram(program);
+					gl.bufferData(
+						gl.ARRAY_BUFFER,
+						new Float32Array(a_positions),
+						gl.STATIC_DRAW
+					);
+					gl.vertexAttribPointer(
+						info.a_position,
+						2,
+						gl.FLOAT,
+						false,
+						2 * Float32Array.BYTES_PER_ELEMENT,
+						0
+					);
+					gl.drawArrays(gl.TRIANGLES, 0, a_positions.length / 2);
 
-        info = {
-          a_position: gl.getAttribLocation( program, 'a_position' ),
-          u_time: gl.getUniformLocation( program, 'u_time' ),
-          u_resolution: gl.getUniformLocation( program, 'u_resolution' )
-        };
+					gl.uniform2f(info.u_resolution, winW, winH);
+				}
 
+				function tick() {
+					var now, elapsed;
 
-      }
+					requestAnimationFrame(tick);
 
-      function initBuffers() {
-        a_positionBuffer = gl.createBuffer();
-        gl.enableVertexAttribArray(info.a_position);
-        gl.bindBuffer(gl.ARRAY_BUFFER, a_positionBuffer);
+					now = new Date().getTime();
+					if (lastTime) {
+						elapsed = now - lastTime;
+						// update animation values
+						u_time += (2 * elapsed) / 1000.0;
+					}
+					lastTime = now;
+					draw();
+				}
 
-        a_positions = [
-          -1.0, -1.0,
-           1.0, -1.0,
-          -1.0,  1.0,
-          -1.0,  1.0,
-           1.0, -1.0,
-           1.0,  1.0
-        ];
+				function draw() {
+					gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(a_positions), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(info.a_position, 2, gl.FLOAT, false, 2 * Float32Array.BYTES_PER_ELEMENT, 0);
-        gl.drawArrays(gl.TRIANGLES, 0, a_positions.length / 2);
+					u_time += 0.01;
+					gl.uniform1f(info.u_time, u_time);
 
-        gl.uniform2f(info.u_resolution, winW, winH);
-      }
+					gl.drawArrays(gl.TRIANGLES, 0, a_positions.length / 2);
+				}
 
-      function tick() {
-        var now, elapsed;
-
-        requestAnimationFrame(tick);
-
-        now = new Date().getTime();
-        if (lastTime) {
-          elapsed = now - lastTime;
-          // update animation values
-          u_time += (2 * elapsed) / 1000.0;
-        }
-        lastTime = now;
-        draw();
-      }
-
-      function draw() {
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-        u_time += 0.01;
-        gl.uniform1f(info.u_time, u_time);
-
-        gl.drawArrays(gl.TRIANGLES, 0, a_positions.length / 2);
-      }
-
-
-      window.addEventListener('resize', function () {
-        winW = window.innerWidth;
-        winH = window.innerHeight;
-        canvas.width = winW;
-        canvas.height = winH;
-        gl.viewport(0, 0, gl.canvas.clientWidth, gl.canvas.clientHeight);
-        gl.uniform2f(info.u_resolution, winW, winH);
-      }, false);
-
-    });
-  </script>
-</body>
+				window.addEventListener(
+					"resize",
+					function() {
+						winW = window.innerWidth;
+						winH = window.innerHeight;
+						canvas.width = winW;
+						canvas.height = winH;
+						gl.viewport(0, 0, gl.canvas.clientWidth, gl.canvas.clientHeight);
+						gl.uniform2f(info.u_resolution, winW, winH);
+					},
+					false
+				);
+			});
+		</script>
+	</body>
 </html>
-
-

@@ -1,179 +1,198 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <style>
-    body { overflow:hidden;margin:0;width:100%;height:100%; }
-    canvas { display:block;-webkit-transform: translateZ(0); }
-  </style>
-</head>
-<body>
-  <canvas id="canvas"></canvas>
+	<head>
+		<style>
+			body {
+				overflow: hidden;
+				margin: 0;
+				width: 100%;
+				height: 100%;
+			}
+			canvas {
+				display: block;
+				-webkit-transform: translateZ(0);
+			}
+		</style>
+	</head>
+	<body>
+		<canvas id="canvas"></canvas>
 
-  <script type="x-shader/x-vertex" id="vs">
-    attribute vec3 aVertexPosition;
+		<script type="x-shader/x-vertex" id="vs">
+			attribute vec3 aVertexPosition;
 
-    uniform mat4 uVMatrix; // view
-    uniform mat4 uPMatrix; // perspective
+			uniform mat4 uVMatrix; // view
+			uniform mat4 uPMatrix; // perspective
 
-    void main() {
-      gl_Position = uPMatrix * uVMatrix * vec4(aVertexPosition, 1.0);
-    }
-  </script>
+			void main() {
+			  gl_Position = uPMatrix * uVMatrix * vec4(aVertexPosition, 1.0);
+			}
+		</script>
 
-  <script  type="x-shader/x-fragment" id="fs">
-    precision mediump float;
+		<script type="x-shader/x-fragment" id="fs">
+			precision mediump float;
 
-    uniform vec2 uResolution;
-    uniform float uTime;
+			uniform vec2 uResolution;
+			uniform float uTime;
 
-    void main() {
-      // position
-      vec2 p = -1.0 + 2.0 * gl_FragCoord.xy / uResolution.xy;
-      float cossin1 = cos(p.x * 9.0 + uTime) + sin(p.y * 7.0 - uTime) + sin(uTime);
-      float cossin2 = cos(p.y * 3.0 + uTime) + sin(p.x * 9.0 - uTime) - cos(uTime);
-      float cossin3 = cos(p.x * 19.0 + uTime) + 2.5 * sin(p.y * 3.0 + uTime) + cos(uTime);
-      gl_FragColor = vec4(cossin1 * sin(p.x), cossin2 * sin(p.y), cossin3 * sin(p.x), 1.0);
-    }
-  </script>
+			void main() {
+			  // position
+			  vec2 p = -1.0 + 2.0 * gl_FragCoord.xy / uResolution.xy;
+			  float cossin1 = cos(p.x * 9.0 + uTime) + sin(p.y * 7.0 - uTime) + sin(uTime);
+			  float cossin2 = cos(p.y * 3.0 + uTime) + sin(p.x * 9.0 - uTime) - cos(uTime);
+			  float cossin3 = cos(p.x * 19.0 + uTime) + 2.5 * sin(p.y * 3.0 + uTime) + cos(uTime);
+			  gl_FragColor = vec4(cossin1 * sin(p.x), cossin2 * sin(p.y), cossin3 * sin(p.x), 1.0);
+			}
+		</script>
 
-  <script src="assets/gl-matrix-min.js"></script>
-  <script>
-    window.addEventListener('load', function () {
-      // utility methods
-      // ---------------
-      function createShader(gl, src, type) {
-        var shader = gl.createShader(type);
-        gl.shaderSource(shader, src);
-        gl.compileShader(shader);
-        var err;
-        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-          err = gl.getShaderInfoLog(shader);
-          gl.deleteShader(shader);
-          throw err;
-        }
-        return shader;
-      };
+		<script src="assets/gl-matrix-min.js"></script>
+		<script>
+			window.addEventListener("load", function() {
+				// utility methods
+				// ---------------
+				function createShader(gl, src, type) {
+					var shader = gl.createShader(type);
+					gl.shaderSource(shader, src);
+					gl.compileShader(shader);
+					var err;
+					if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+						err = gl.getShaderInfoLog(shader);
+						gl.deleteShader(shader);
+						throw err;
+					}
+					return shader;
+				}
 
-      // ---------------
-      var winW = window.innerWidth;
-      var winH = window.innerHeight;
-      var canvas = document.getElementById('canvas');
-      var gl;
-      var info;
-      var vertexPositionBuffer;
-      var pMatrix = mat4.create();
-      var vMatrix = mat4.create();
-      var vMatrixStack = [];
-      var lastTime = 0;
-      var uTime = 0;
-      init();
+				// ---------------
+				var winW = window.innerWidth;
+				var winH = window.innerHeight;
+				var canvas = document.getElementById("canvas");
+				var gl;
+				var info;
+				var vertexPositionBuffer;
+				var pMatrix = mat4.create();
+				var vMatrix = mat4.create();
+				var vMatrixStack = [];
+				var lastTime = 0;
+				var uTime = 0;
+				init();
 
-      function init() {
-        canvas.width = winW;
-        canvas.height = winH;
+				function init() {
+					canvas.width = winW;
+					canvas.height = winH;
 
-        gl = canvas.getContext('webgl');
-        if (!gl) {
-          throw 'Failed to initialize WebGL';
-        }
+					gl = canvas.getContext("webgl");
+					if (!gl) {
+						throw "Failed to initialize WebGL";
+					}
 
-        initShaders();
-        initBuffers();
+					initShaders();
+					initBuffers();
 
-        gl.viewport(0, 0, gl.canvas.clientWidth, gl.canvas.clientHeight);
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.enable(gl.DEPTH_TEST);
+					gl.viewport(0, 0, gl.canvas.clientWidth, gl.canvas.clientHeight);
+					gl.clearColor(0.0, 0.0, 0.0, 1.0);
+					gl.enable(gl.DEPTH_TEST);
 
-        tick();
-      }
+					tick();
+				}
 
-      function initShaders() {
-        var src, vShader, fShader, progam;
+				function initShaders() {
+					var src, vShader, fShader, progam;
 
-        src = document.getElementById('vs').textContent;
-        vShader = createShader(gl, src, gl.VERTEX_SHADER);
+					src = document.getElementById("vs").textContent;
+					vShader = createShader(gl, src, gl.VERTEX_SHADER);
 
-        src = document.getElementById('fs').textContent;
-        fShader = createShader(gl, src, gl.FRAGMENT_SHADER);
+					src = document.getElementById("fs").textContent;
+					fShader = createShader(gl, src, gl.FRAGMENT_SHADER);
 
-        var program = gl.createProgram();
-        gl.attachShader(program, vShader);
-        gl.attachShader(program, fShader);
-        gl.linkProgram(program);
-        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-          err = gl.getProgramInfoLog(program);
-          gl.deleteProgram(program);
-          throw err;
-        }
-        gl.useProgram(program);
+					var program = gl.createProgram();
+					gl.attachShader(program, vShader);
+					gl.attachShader(program, fShader);
+					gl.linkProgram(program);
+					if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+						err = gl.getProgramInfoLog(program);
+						gl.deleteProgram(program);
+						throw err;
+					}
+					gl.useProgram(program);
 
-        info = {
-          aVertexPosition: gl.getAttribLocation(program,  'aVertexPosition'),
-          uVMatrix:        gl.getUniformLocation(program, 'uVMatrix'),
-          uPMatrix:        gl.getUniformLocation(program, 'uPMatrix'),
-          uResolution:     gl.getUniformLocation(program, 'uResolution'),
-          uTime:           gl.getUniformLocation(program, 'uTime')
-        };
-      }
+					info = {
+						aVertexPosition: gl.getAttribLocation(program, "aVertexPosition"),
+						uVMatrix: gl.getUniformLocation(program, "uVMatrix"),
+						uPMatrix: gl.getUniformLocation(program, "uPMatrix"),
+						uResolution: gl.getUniformLocation(program, "uResolution"),
+						uTime: gl.getUniformLocation(program, "uTime")
+					};
+				}
 
-      function initBuffers() {
-        var vertices = [
-          1.0, 1.0,
-         -1.0, 1.0,
-          1.0, -1.0,
-         -1.0, -1.0
-        ];
-        vertexPositionBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
-        gl.vertexAttribPointer(info.aVertexPosition, 2, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(info.aVertexPosition);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+				function initBuffers() {
+					var vertices = [1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0];
+					vertexPositionBuffer = gl.createBuffer();
+					gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
+					gl.vertexAttribPointer(
+						info.aVertexPosition,
+						2,
+						gl.FLOAT,
+						false,
+						0,
+						0
+					);
+					gl.enableVertexAttribArray(info.aVertexPosition);
+					gl.bufferData(
+						gl.ARRAY_BUFFER,
+						new Float32Array(vertices),
+						gl.STATIC_DRAW
+					);
 
-        // set static uniforms
-        gl.uniform2f(info.uResolution, canvas.width, canvas.height);
-      }
+					// set static uniforms
+					gl.uniform2f(info.uResolution, canvas.width, canvas.height);
+				}
 
-      function tick() {
-        var now, elapsed;
+				function tick() {
+					var now, elapsed;
 
-        requestAnimationFrame(tick);
+					requestAnimationFrame(tick);
 
-        now = new Date().getTime();
-        if (lastTime) {
-          elapsed = now - lastTime;
+					now = new Date().getTime();
+					if (lastTime) {
+						elapsed = now - lastTime;
 
-          // update animation values
-          // time += (20 * elapsed) / 1000.0;
-        }
-        lastTime = now;
-        draw();
-      }
+						// update animation values
+						// time += (20 * elapsed) / 1000.0;
+					}
+					lastTime = now;
+					draw();
+				}
 
-      function draw() {
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+				function draw() {
+					gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        mat4.perspective(pMatrix, 45, gl.drawingBufferWidth / gl.drawingBufferHeight, 0.1, 100.0);
-        mat4.identity(vMatrix);
-        mat4.translate(vMatrix, vMatrix, vec3.fromValues(0.0, 0.0, -2.0));
+					mat4.perspective(
+						pMatrix,
+						45,
+						gl.drawingBufferWidth / gl.drawingBufferHeight,
+						0.1,
+						100.0
+					);
+					mat4.identity(vMatrix);
+					mat4.translate(vMatrix, vMatrix, vec3.fromValues(0.0, 0.0, -2.0));
 
-        gl.uniformMatrix4fv(info.uPMatrix, false, pMatrix);
-        gl.uniformMatrix4fv(info.uVMatrix, false, vMatrix);
+					gl.uniformMatrix4fv(info.uPMatrix, false, pMatrix);
+					gl.uniformMatrix4fv(info.uVMatrix, false, vMatrix);
 
-        uTime += 0.1;
-        gl.uniform1f(info.uTime, uTime);
+					uTime += 0.1;
+					gl.uniform1f(info.uTime, uTime);
 
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-      }
+					gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+				}
 
-      function pushMatrix(m) {
-        return vMatrixStack.push(mat4.clone(m));
-      }
+				function pushMatrix(m) {
+					return vMatrixStack.push(mat4.clone(m));
+				}
 
-      function popMatrix() {
-        if (vMatrixStack.length) return vMatrixStack.pop();
-      }
-
-    });
-  </script>
-</body>
+				function popMatrix() {
+					if (vMatrixStack.length) return vMatrixStack.pop();
+				}
+			});
+		</script>
+	</body>
 </html>

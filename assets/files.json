@@ -1,25 +1,25 @@
 {
-  "files": [
-    "files/2020-02-29-02.html",
-    "files/2020-02-29.html",
-    "files/2019-02-23.html",
-    "files/2017-03-19-01.html",
-    "files/2017-03-19-02.html",
-    "files/bit101-01.html",
-    "files/blobs.html",
-    "files/camripple.html",
-    "files/gl-attractors-01.html",
-    "files/gl-attractors-02.html",
-    "files/gl-blobs-01.html",
-    "files/gl-blobs-02.html",
-    "files/gl-plasma.html",
-    "files/gl-walk-01.html",
-    "files/gl-walk-02.html",
-    "files/gl-walk-03.html",
-    "files/particles02.html",
-    "files/particles03.html",
-    "files/pixi-particles-01.html",
-    "files/pixi-particles-02.html",
-    "files/swarm01.html"
-  ]
+	"files": [
+		"files/2020-02-29-02.html",
+		"files/2020-02-29.html",
+		"files/2019-02-23.html",
+		"files/2017-03-19-01.html",
+		"files/2017-03-19-02.html",
+		"files/bit101-01.html",
+		"files/blobs.html",
+		"files/camripple.html",
+		"files/gl-attractors-01.html",
+		"files/gl-attractors-02.html",
+		"files/gl-blobs-01.html",
+		"files/gl-blobs-02.html",
+		"files/gl-plasma.html",
+		"files/gl-walk-01.html",
+		"files/gl-walk-02.html",
+		"files/gl-walk-03.html",
+		"files/particles02.html",
+		"files/particles03.html",
+		"files/pixi-particles-01.html",
+		"files/pixi-particles-02.html",
+		"files/swarm01.html"
+	]
 }
