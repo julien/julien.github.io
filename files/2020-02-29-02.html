@@ -35,8 +35,8 @@
 					this.VERTICES_PER_QUAD = 6;
 					this.INDEX_DATA_SIZE = this.MAX_BATCH * (2 * this.VERTICES_PER_QUAD);
 					this.SPRITES_COUNT = 200;
-					this.width = g.canvas.clientWidth;
-					this.height = g.canvas.clientHeight;
+					this.width = g.clientWidth;
+					this.height = c.clientHeight;
 					this.currentTexture;
 					this.col = 0xffffffff;
 
@@ -122,12 +122,23 @@
 
 					this.count = 0;
 
-					// prettier-ignore
 					this.viewMatrix = new Float32Array([
-						2 / this.width, 0, 0, 0,
-						0, -2 / this.height, 0, 0,
-						0, 0, 1, 1,
-						-1, 1, 0, 0
+						2 / width,
+						0,
+						0,
+						0,
+						0,
+						-2 / height,
+						0,
+						0,
+						0,
+						0,
+						1,
+						1,
+						-1,
+						1,
+						0,
+						0
 					]);
 
 					this.g.blendFunc(this.g.SRC_ALPHA, this.g.ONE_MINUS_SRC_ALPHA);
@@ -462,8 +473,8 @@
 						sprites.ax[i] *= 0;
 						sprites.ay[i] *= 0;
 
-						sprites.tx[i] += sprites.vx[i];
-						sprites.ty[i] += sprites.vy[i];
+						sprites.tx[i] += sprites.vx[i] * Math.cos(sprites.r[i] * 0.3);
+						sprites.ty[i] += sprites.vy[i] * Math.sin(sprites.r[i] * 0.2);
 
 						if (sprites.tx[i] > width + sprites.w[i]) {
 							sprites.vx[i] *= -1;
@@ -482,10 +493,10 @@
 						var vs = sprites.ns[i] - sprites.sx[i];
 						var vr = sprites.nr[i] - sprites.r[i];
 
-						var ax = Math.abs(vx) > 0.1;
-						var ay = Math.abs(vy) > 0.1;
-						var as = Math.abs(vs) > 0.1;
-						var ar = Math.abs(vs) > 0.1;
+						var ax = Math.abs(vx) > 0.03;
+						var ay = Math.abs(vy) > 0.09;
+						var as = Math.abs(vs) > 0.05;
+						var ar = Math.abs(vr) > 0.03;
 
 						if (ax && ay && as && ar) {
 							vx *= sprites.ex[i];
@@ -498,10 +509,10 @@
 							sprites.sx[i] = sprites.sy[i] += vs;
 							sprites.r[i] += vr;
 						} else {
-							sprites.ex[i] = 0.01 + Math.random() * (0.06 - 0.01);
-							sprites.ey[i] = 0.01 + Math.random() * (0.06 - 0.01);
-							sprites.es[i] = 0.01 + Math.random() * (0.05 - 0.01);
-							sprites.er[i] = 0.01 + Math.random() * (0.03 - 0.01);
+							// sprites.ex[i] = 0.01 + Math.random() * (0.06 - 0.01);
+							// sprites.ey[i] = 0.01 + Math.random() * (0.06 - 0.01);
+							// sprites.es[i] = 0.01 + Math.random() * (0.05 - 0.01);
+							// sprites.er[i] = 0.01 + Math.random() * (0.03 - 0.01);
 
 							sprites.nx[i] = hw + -hw + Math.random() * (hw - -hw);
 							sprites.ny[i] = hh + -hh + Math.random() * (hh - -hh);
