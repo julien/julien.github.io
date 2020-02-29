@@ -1,0 +1,434 @@
+<!doctype html>
+<html>
+	<head>
+		<style>
+			html,body{margin:0;width:100%;height:100%;overflow:hidden}
+		</style>
+	</head>
+	<body>
+		<canvas id="c"></canvas>
+		<script>
+			onload = function() {
+				function createTexture(g, img) {
+					var tex = g.createTexture();
+					g.bindTexture(g.TEXTURE_2D, tex);
+					g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_S, g.CLAMP_TO_EDGE);
+					g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_T, g.CLAMP_TO_EDGE);
+					g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MIN_FILTER, g.LINEAR);
+					g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MAG_FILTER, g.LINEAR);
+					g.texImage2D(g.TEXTURE_2D, 0, g.RGBA, g.RGBA, g.UNSIGNED_BYTE, img);
+					g.bindTexture(g.TEXTURE_2D, null);
+					return tex;
+				}
+
+				function Renderer(g) {
+					this.g = g;
+					this.VERTEX_SIZE = 4 + ((4 * 2) * 4) + 4;
+					this.MAX_BATCH = 10922;
+					this.VERTEX_DATA_SIZE = this.VERTEX_SIZE * this.MAX_BATCH * 4;
+					this.VERTICES_PER_QUAD = 6;
+					this.INDEX_DATA_SIZE = this.MAX_BATCH * (2 * this.VERTICES_PER_QUAD);
+					this.SPRITES_COUNT = 200;
+					this.width = g.clientWidth;
+					this.height = c.clientHeight;
+					this.currentTexture;
+					this.col = 0xFFFFFFFF;
+
+					var vertexSrc = `precision lowp float;
+					attribute float a_rotation;
+					attribute vec2 a_translation;
+					attribute vec2 a_scale;
+					attribute vec2 a_position;
+					attribute vec2 a_uv;
+					attribute vec4 a_color;
+					uniform mat4 u_matrix;
+
+					varying vec4 v_color;
+					varying vec2 v_uv;
+
+					void main() {
+						float q = cos(a_rotation);
+						float w = sin(a_rotation);
+
+						gl_Position = u_matrix * vec4(((
+							vec2(
+								a_position.x * q - a_position.y * w,
+								a_position.x * w + a_position.y * q)
+							* a_scale
+						) + a_translation), 1.0, 1.0);
+
+						v_color = a_color;
+						v_uv = a_uv;
+					}`;
+
+					var fragmentSrc = `precision lowp float;
+
+					uniform sampler2D u_tex;
+					varying vec4 v_color;
+					varying vec2 v_uv;
+
+					void main() {
+						gl_FragColor = texture2D(u_tex, v_uv) * v_color;
+					}`;
+
+					var s;
+					this.prog = this.g.createProgram();
+					this.g.shaderSource((s = this.g.createShader(this.g.VERTEX_SHADER)),
+						vertexSrc);
+					this.g.compileShader(s);
+					this.g.attachShader(this.prog, s);
+
+					this.g.shaderSource((s = this.g.createShader(this.g.FRAGMENT_SHADER)),
+						fragmentSrc);
+					this.g.compileShader(s);
+					this.g.attachShader(this.prog, s);
+
+					this.g.linkProgram(this.prog);
+
+					if (!this.g.getProgramParameter(this.prog, this.g.LINK_STATUS)) {
+						this.g.getProgramInfoLog(this.prog);
+					}
+
+					this.vertexData = new ArrayBuffer(this.VERTEX_DATA_SIZE);
+					this.vPositionData = new Float32Array(this.vertexData);
+					this.vColorData = new Uint32Array(this.vertexData);
+					this.vIndexData = new Uint16Array(this.INDEX_DATA_SIZE);
+
+					this.IBO = this.g.createBuffer();
+					this.g.bindBuffer(this.g.ELEMENT_ARRAY_BUFFER, this.IBO);
+					this.g.bufferData(this.g.ELEMENT_ARRAY_BUFFER, this.vIndexData.byteLength, this.g.STATIC_DRAW);
+
+					this.VBO = this.g.createBuffer();
+					this.g.bindBuffer(this.g.ARRAY_BUFFER, this.VBO);
+					this.g.bufferData(this.g.ARRAY_BUFFER, this.vertexData.byteLength, this.g.DYNAMIC_DRAW);
+
+					this.count = 0;
+
+					this.viewMatrix = new Float32Array([
+						2 / width, 0, 0, 0,
+						0, -2 / height, 0, 0,
+						0, 0, 1, 1,
+						-1, 1, 0, 0,
+					]);
+
+					this.g.blendFunc(this.g.SRC_ALPHA, this.g.ONE_MINUS_SRC_ALPHA);
+					this.g.enable(this.g.BLEND);
+					this.g.useProgram(this.prog);
+
+					this.g.bindBuffer(this.g.ELEMENT_ARRAY_BUFFER, this.IBO);
+
+					for (var indexA = 0, indexB = 0;
+						indexA < this.MAX_BATCH * this.VERTICES_PER_QUAD;
+							indexA += this.VERTICES_PER_QUAD, indexB += 4) {
+
+							this.vIndexData[indexA + 0] = indexB,
+							this.vIndexData[indexA + 1] = indexB + 1,
+							this.vIndexData[indexA + 2] = indexB + 2,
+							this.vIndexData[indexA + 3] = indexB + 0,
+							this.vIndexData[indexA + 4] = indexB + 3,
+							this.vIndexData[indexA + 5] = indexB + 1;
+					}
+
+					this.g.bufferSubData(this.g.ELEMENT_ARRAY_BUFFER, 0, this.vIndexData);
+
+					this.g.bindBuffer(this.g.ARRAY_BUFFER, this.VBO);
+
+					var aRotation = this.g.getAttribLocation(this.prog, 'a_rotation');
+					var aTranslation = this.g.getAttribLocation(this.prog, 'a_translation');
+					var aScale = this.g.getAttribLocation(this.prog, 'a_scale');
+					var aPosition = this.g.getAttribLocation(this.prog, 'a_position');
+					var aUv = this.g.getAttribLocation(this.prog, 'a_uv');
+					var aColor = this.g.getAttribLocation(this.prog, 'a_color');
+					var uMatrix = this.g.getUniformLocation(this.prog, 'u_matrix');
+
+					this.g.enableVertexAttribArray(aRotation);
+					this.g.vertexAttribPointer(aRotation, 1, this.g.FLOAT, false, this.VERTEX_SIZE, 0);
+
+					this.g.enableVertexAttribArray(aTranslation);
+					this.g.vertexAttribPointer(aTranslation, 2, this.g.FLOAT, false, this.VERTEX_SIZE, 4);
+
+					this.g.enableVertexAttribArray(aScale);
+					this.g.vertexAttribPointer(aScale, 2, this.g.FLOAT, false, this.VERTEX_SIZE, 12);
+
+					this.g.enableVertexAttribArray(aPosition);
+					this.g.vertexAttribPointer(aPosition, 2, this.g.FLOAT, false, this.VERTEX_SIZE, 20);
+
+					this.g.enableVertexAttribArray(aUv);
+					this.g.vertexAttribPointer(aUv, 2, this.g.FLOAT, false, this.VERTEX_SIZE, 28);
+
+					this.g.enableVertexAttribArray(aColor);
+					this.g.vertexAttribPointer(aColor, 4, this.g.UNSIGNED_BYTE, true, this.VERTEX_SIZE, 36);
+
+					this.g.uniformMatrix4fv(uMatrix, false, this.viewMatrix);
+
+					this.g.activeTexture(this.g.TEXTURE0);
+				}
+				Renderer.prototype.bkg = function(a, b, c) {
+					this.g.clearColor(a, b, c, 1.0);
+				};
+				Renderer.prototype.cls = function() {
+					this.g.clear(this.g.COLOR_BUFFER_BIT);
+				};
+				Renderer.prototype.flush = function() {
+					if (this.count === 0) {
+						return;
+					}
+					this.g.bufferSubData(this.g.ARRAY_BUFFER, 0, this.vPositionData.subarray(0, this.count * this.VERTEX_SIZE));
+					this.g.drawElements(4, this.count * this.VERTICES_PER_QUAD, this.g.UNSIGNED_SHORT, 0);
+					this.count = 0;
+				};
+				Renderer.prototype.img = function(texture, x, y, w, h, r, tx, ty, sx, sy, u0, v0, u1, v1) {
+					var x0 = x;
+					var y0 = y;
+					var x1 = x + w;
+					var y1 = y + h;
+					var x2 = x;
+					var y2 = y + h;
+					var x3 = x + w;
+					var y3 = y;
+					var argb = this.col;
+
+					var offset = 0;
+
+					if (texture !== this.currentTexture || this.count + 1 >= this.MAX_BATCH) {
+						this.g.bufferSubData(this.g.ARRAY_BUFFER, 0, this.vertexData);
+						this.g.drawElements(4, this.count * this.VERTICES_PER_QUAD, this.g.UNSIGNED_SHORT, 0);
+						this.count = 0;
+						if (texture !== this.currentTexture) {
+							this.currentTexture = texture;
+							this.g.bindTexture(this.g.TEXTURE_2D, this.currentTexture);
+						}
+					}
+
+					offset = this.count * this.VERTEX_SIZE;
+
+					// rotation|translation|scale|position|uv|color
+					this.vPositionData[offset++] = r;
+					this.vPositionData[offset++] = tx;
+					this.vPositionData[offset++] = ty;
+					this.vPositionData[offset++] = sx;
+					this.vPositionData[offset++] = sy;
+					this.vPositionData[offset++] = x0;
+					this.vPositionData[offset++] = y0;
+					this.vPositionData[offset++] = u0;
+					this.vPositionData[offset++] = v0;
+					this.vColorData[offset++] = argb;
+
+					this.vPositionData[offset++] = r;
+					this.vPositionData[offset++] = tx;
+					this.vPositionData[offset++] = ty;
+					this.vPositionData[offset++] = sx;
+					this.vPositionData[offset++] = sy;
+					this.vPositionData[offset++] = x1;
+					this.vPositionData[offset++] = y1;
+					this.vPositionData[offset++] = u1;
+					this.vPositionData[offset++] = v1;
+					this.vColorData[offset++] = argb;
+
+					this.vPositionData[offset++] = r;
+					this.vPositionData[offset++] = tx;
+					this.vPositionData[offset++] = ty;
+					this.vPositionData[offset++] = sx;
+					this.vPositionData[offset++] = sy;
+					this.vPositionData[offset++] = x2;
+					this.vPositionData[offset++] = y2;
+					this.vPositionData[offset++] = u0;
+					this.vPositionData[offset++] = v1;
+					this.vColorData[offset++] = argb;
+
+					this.vPositionData[offset++] = r;
+					this.vPositionData[offset++] = tx;
+					this.vPositionData[offset++] = ty;
+					this.vPositionData[offset++] = sx;
+					this.vPositionData[offset++] = sy;
+					this.vPositionData[offset++] = x3;
+					this.vPositionData[offset++] = y3;
+					this.vPositionData[offset++] = u1;
+					this.vPositionData[offset++] = v0;
+					this.vColorData[offset++] = argb;
+
+					if (++this.count >= this.MAX_BATCH) {
+						this.g.bufferSubData(this.g.ARRAY_BUFFER, 0, this.vertexData);
+						this.g.drawElements(4, this.count * this.VERTICES_PER_QUAD, this.g.UNSIGNED_SHORT, 0);
+						this.count = 0;
+					}
+				};
+
+				var width = innerWidth;
+				var height = innerHeight;
+				var hw = width * 0.5;
+				var hh = height * 0.5;
+				var numSprites = 50;
+				var texture;
+
+				var c = document.getElementById("c");
+				c.width = width;
+				c.height = height;
+
+				var g = c.getContext("webgl");
+				if (!g)
+					throw "Couldn't get WebGL context";
+
+				var renderer = new Renderer(g);
+
+				var sprites = {
+					x: Array.from(new Array(numSprites)).fill(0),
+					y: Array.from(new Array(numSprites)).fill(0),
+					w: Array.from(new Array(numSprites)).fill(0),
+					h: Array.from(new Array(numSprites)).fill(0),
+					r: Array.from(new Array(numSprites)).fill(0),
+					tx: Array.from(new Array(numSprites)).fill(0),
+					ty: Array.from(new Array(numSprites)).fill(0),
+					sx: Array.from(new Array(numSprites)).fill(0),
+					sy: Array.from(new Array(numSprites)).fill(0),
+					u0: Array.from(new Array(numSprites)).fill(0),
+					v0: Array.from(new Array(numSprites)).fill(0),
+					u1: Array.from(new Array(numSprites)).fill(1),
+					v1: Array.from(new Array(numSprites)).fill(1),
+					ax: Array.from(new Array(numSprites)).fill(0),
+					ay: Array.from(new Array(numSprites)).fill(0),
+					vx: Array.from(new Array(numSprites)).fill(0),
+					vy: Array.from(new Array(numSprites)).fill(0),
+					nx: Array.from(new Array(numSprites)).fill(0),
+					ny: Array.from(new Array(numSprites)).fill(0),
+					ns: Array.from(new Array(numSprites)).fill(0),
+					nr: Array.from(new Array(numSprites)).fill(0),
+					ex: Array.from(new Array(numSprites)).fill(0),
+					ey: Array.from(new Array(numSprites)).fill(0),
+					es: Array.from(new Array(numSprites)).fill(0),
+					er: Array.from(new Array(numSprites)).fill(0),
+					argb: Array.from(new Array(numSprites)).fill(0),
+				};
+
+				var img = new Image();
+
+				img.onload = function() {
+					texture = createTexture(g, img);
+
+					var tw = img.width * 0.5;
+					var th = img.height * 0.5;
+
+					for (var i = 0; i < numSprites; i++) {
+						sprites.x[i] = -tw;
+						sprites.y[i] = -th;
+
+						sprites.w[i] = img.width;
+						sprites.h[i] = img.height;
+
+						sprites.r[i] = 0;
+
+						sprites.tx[i] = hw + -hw + Math.random() * (hw - -hw);
+						sprites.ty[i] = hh + -hh + Math.random() * (hh - -hh);
+
+						var size = 0.15 + Math.random() * (1 - 0.15);
+						sprites.sx[i] = size;
+						sprites.sy[i] = size;
+
+						sprites.ax[i] = 0.2 + Math.random() * (0.7 - 0.2);
+						sprites.ay[i] = 0.2 + Math.random() * (0.7 - 0.2);
+
+						sprites.vx[i] = -10 + Math.random() * (10 - -10);
+						sprites.vy[i] = -10 + Math.random() * (10 - -10);
+
+						sprites.nx[i] = hw + -hw + Math.random() * (hw - -hw);
+						sprites.ny[i] = hh + -hh + Math.random() * (hh - -hh);
+						sprites.ns[i] = 0.15 + Math.random() * (1 - 0.15);
+						sprites.nr[i] = (-Math.PI/2) + Math.random() * ((Math.PI/2) - (-Math.PI/2));
+
+						sprites.ex[i] = 0.01 + Math.random() * (0.06 - 0.01);
+						sprites.ey[i] = 0.01 + Math.random() * (0.06 - 0.01);
+						sprites.es[i] = 0.01 + Math.random() * (0.05 - 0.01);
+						sprites.er[i] = 0.01 + Math.random() * (0.03 - 0.01);
+					}
+
+					requestAnimationFrame(loop);
+				};
+				img.src = 'data:image/png;base64,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';
+
+				renderer.bkg(0.0, 0.0, 0.0);
+
+				function loop() {
+					requestAnimationFrame(loop);
+
+					renderer.cls();
+
+					for (var i = 0; i < numSprites; i++) {
+
+						sprites.vx[i] += sprites.ax[i];
+						sprites.vy[i] += sprites.ay[i];
+
+						sprites.ax[i] *= 0;
+						sprites.ay[i] *= 0;
+
+						sprites.tx[i] += sprites.vx[i];
+						sprites.ty[i] += sprites.vy[i];
+
+						if (sprites.tx[i] > width + sprites.w[i]) {
+							sprites.vx[i] *= -1;
+						} else if (sprites.tx[i] < -sprites.w[i]) {
+							sprites.vx[i] *= -1;
+						}
+
+						if (sprites.ty[i] > height + sprites.h[i]) {
+							sprites.vy[i] *= -1;
+						} else if (sprites.ty[i] < -sprites.h[i]) {
+							sprites.vy[i] *= -1;
+						}
+
+						var vx = sprites.nx[i] - sprites.tx[i];
+						var vy = sprites.ny[i] - sprites.ty[i];
+						var vs = sprites.ns[i] - sprites.sx[i];
+						var vr = sprites.nr[i] - sprites.r[i];
+
+						var ax = Math.abs(vx) > 0.1;
+						var ay = Math.abs(vy) > 0.1;
+						var as = Math.abs(vs) > 0.1;
+						var ar = Math.abs(vs) > 0.1;
+
+						if (ax && ay && as && ar) {
+							vx *= sprites.ex[i];
+							vy *= sprites.ey[i];
+							vs *= sprites.es[i];
+							vr *= sprites.er[i];
+
+							sprites.tx[i] += vx;
+							sprites.ty[i] += vy;
+							sprites.sx[i] = sprites.sy[i] += vs;
+							sprites.r[i] += vr;
+
+						} else {
+							sprites.ex[i] = 0.01 + Math.random() * (0.06 - 0.01);
+							sprites.ey[i] = 0.01 + Math.random() * (0.06 - 0.01);
+							sprites.es[i] = 0.01 + Math.random() * (0.05 - 0.01);
+							sprites.er[i] = 0.01 + Math.random() * (0.03 - 0.01);
+
+							sprites.nx[i] = hw + -hw + Math.random() * (hw - -hw);
+							sprites.ny[i] = hh + -hh + Math.random() * (hh - -hh);
+							sprites.ns[i] = 0.15 + Math.random() * (1 - 0.15);
+							sprites.nr[i] = (-Math.PI/2) + Math.random() * ((Math.PI/2) - (-Math.PI/2));
+						}
+
+						renderer.img(
+							texture,
+							sprites.x[i],
+							sprites.y[i],
+							sprites.w[i],
+							sprites.h[i],
+							sprites.r[i],
+							sprites.tx[i],
+							sprites.ty[i],
+							sprites.sx[i],
+							sprites.sy[i],
+							sprites.u0[i],
+							sprites.v0[i],
+							sprites.u1[i],
+							sprites.v1[i]
+						);
+					}
+
+					renderer.flush();
+				}
+			}
+		</script>
+	</body>
+</html>
