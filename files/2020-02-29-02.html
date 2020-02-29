@@ -35,8 +35,8 @@
 					this.VERTICES_PER_QUAD = 6;
 					this.INDEX_DATA_SIZE = this.MAX_BATCH * (2 * this.VERTICES_PER_QUAD);
 					this.SPRITES_COUNT = 200;
-					this.width = g.clientWidth;
-					this.height = c.clientHeight;
+					this.width = g.canvas.clientWidth;
+					this.height = g.canvas.clientHeight;
 					this.currentTexture;
 					this.col = 0xffffffff;
 
@@ -122,23 +122,12 @@
 
 					this.count = 0;
 
+					// prettier-ignore
 					this.viewMatrix = new Float32Array([
-						2 / width,
-						0,
-						0,
-						0,
-						0,
-						-2 / height,
-						0,
-						0,
-						0,
-						0,
-						1,
-						1,
-						-1,
-						1,
-						0,
-						0
+						2 / this.width, 0, 0, 0,
+						0, -2 / this.height, 0, 0,
+						0, 0, 1, 1,
+						-1, 1, 0, 0
 					]);
 
 					this.g.blendFunc(this.g.SRC_ALPHA, this.g.ONE_MINUS_SRC_ALPHA);
