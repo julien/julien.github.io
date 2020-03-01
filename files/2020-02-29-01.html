@@ -21,7 +21,7 @@
 			onload = function() {
 				var WIDTH = innerWidth;
 				var HEIGHT = innerHeight;
-				var NUM_BLOBS = 12;
+				var NUM_BLOBS = WIDTH > 600 ? 80 : 30;
 				var BLOB_SIZE = 14;
 
 				var c = document.getElementById("c");
