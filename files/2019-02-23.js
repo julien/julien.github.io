@@ -80,8 +80,8 @@
 					c = t("./math-utils"),
 					g = 5e3,
 					v = 30,
-					A = 10,
-					f = 200,
+					A = 20,
+					f = 100,
 					D = {
 						ax: Array.from(new Array(g)).fill(0),
 						ay: Array.from(new Array(g)).fill(0),
@@ -214,7 +214,7 @@
 											(D.px[r] = t + c.random(-t, t)),
 											(D.py[r] = i + c.random(-i, i)),
 											(D.rgba[r] = 4294967295 * Math.random());
-										var a = 1 + c.random(0.25, 1.5);
+										var a = 0.15 + c.random(0.15, 0.25);
 										D.sx[r] = D.sy[r] = a;
 										var e = [D.px[r], D.py[r]];
 										(D.target[r] = e),
