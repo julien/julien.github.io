@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+	<head>
+	<style>
+		body{margin:0;overflow:hidden;}
+	</style>
+	</head>
+	<body>
+		<script id="vsrc" type="text/vertex-shader">
+			precision lowp float;
+			attribute vec3 a_position;
+			uniform mat4 u_matrix;
+			void main() {
+				gl_Position = u_matrix * vec4(a_position.xy, 1.0, 1.0);
+				gl_PointSize = a_position.z;
+			}
+		</script>
+		<script id="fsrc" type="text/fragment-shader">
+			precision lowp float;
+			uniform sampler2D u_image;
+			void main() {
+				vec4 texColor = texture2D(u_image, gl_PointCoord);
+				gl_FragColor = vec4(texColor.rgb, texColor.a * 0.2);
+			}
+		</script>
+		<canvas id="canvas"></canvas>
+		<script src="2021-02-07.js"></script>
+	</body>
+</html>
