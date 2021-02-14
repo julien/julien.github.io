@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+	<head>
+	<style>
+		body{margin:0;overflow:hidden;}
+		audio{outline:none;position:absolute;top:5px;right:5px;z-index:10}
+		input{border:none;border-radius:18px;position:absolute;top:65px;right:18px;
+			outline:none;padding:8px;z-index:10;background:rgba(255,255,255,0.7)}
+	</style>
+	</head>
+	<body>
+		<script id="vsrc" type="text/vertex-shader">
+			precision lowp float;
+
+			attribute vec3 a_position;
+			uniform float u_audioTime;
+			uniform float u_time;
+			uniform mat4 u_matrix;
+			uniform sampler2D u_spectrum;
+			uniform sampler2D u_waveform;
+			uniform vec2 u_resolution;
+			uniform vec4 u_color;
+			varying float v_audioTime;
+			varying float v_time;
+			varying vec4 v_color;
+
+			void main() {
+				float xoff = sin(u_time + a_position.y * .5) * 2.;
+				float yoff = sin(u_audioTime + a_position.x * .25) * .8;
+
+				vec4 snd1 = texture2D(u_spectrum, vec2(.5));
+				vec4 snd2 = texture2D(u_waveform, vec2(.5));
+				vec4 both = mix(snd1, snd2, .25);
+
+				float soff = sin(u_time * 2.8 + xoff * yoff * 2.) * 8.;
+
+				vec2 p = a_position.xy;
+
+				gl_Position = u_matrix * vec4(p, 1.0, 1.0);
+
+				gl_PointSize = a_position.z * (xoff + yoff * cos(u_audioTime * .02));
+				gl_PointSize *= pow(both.r + .2, .9) * soff;
+
+				float r = clamp(snd1.r, .1, .4);
+				float g = clamp(snd2.g, .2, .1);
+				float b = clamp(both.b, .1, .3);
+
+				vec4 c = u_color;
+				c.r = r;
+				c.g = g;
+				c.b = b;
+
+				v_color = c;
+				v_time = u_time;
+				v_audioTime = u_audioTime;
+			}
+		</script>
+		<script id="fsrc" type="text/fragment-shader">
+			precision lowp float;
+			uniform sampler2D u_image;
+			varying float v_audioTime;
+			varying float v_time;
+			varying vec4 v_color;
+
+			void main() {
+				vec4 texColor = texture2D(u_image, gl_PointCoord);
+				gl_FragColor = vec4(texColor.rgb * v_color.rgb, texColor.a * .3);
+			}
+		</script>
+		<canvas id="canvas"></canvas>
+		<script src="2021-02-14.js"></script>
+	</body>
+</html>
