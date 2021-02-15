@@ -81,7 +81,7 @@
 					g = 5e3,
 					v = 30,
 					A = 20,
-					f = 100,
+					f = 300,
 					D = {
 						ax: Array.from(new Array(g)).fill(0),
 						ay: Array.from(new Array(g)).fill(0),
@@ -225,7 +225,7 @@
 											(D.vx[r] = c.random(-2, 2)),
 											(D.vy[r] = c.random(-2, 2));
 									}
-									(D.count = 2e3), requestAnimationFrame(b);
+									(D.count = 4e3), requestAnimationFrame(b);
 								})();
 						}),
 						(o.src =
