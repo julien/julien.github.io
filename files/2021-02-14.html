@@ -1,12 +1,13 @@
 <!doctype html>
 <html>
 	<head>
-	<style>
-		body{margin:0;overflow:hidden;}
-		audio{outline:none;position:absolute;top:5px;right:5px;z-index:10}
-		input{border:none;border-radius:18px;position:absolute;top:65px;right:18px;
-			outline:none;padding:8px;z-index:10;background:rgba(255,255,255,0.7)}
-	</style>
+		<style>
+			body{margin:0;overflow:hidden;}
+			audio{outline:none;position:absolute;top:5px;right:5px;z-index:10}
+			input{border:none;border-radius:18px;position:absolute;top:65px;right:18px;
+				outline:none;padding:8px;z-index:10;background:rgba(255,255,255,0.7)}
+		</style>
+		<link rel="stylesheet" href="extras.css">
 	</head>
 	<body>
 		<script id="vsrc" type="text/vertex-shader">
@@ -69,5 +70,12 @@
 		</script>
 		<canvas id="canvas"></canvas>
 		<script src="2021-02-14.min.js"></script>
+		<div class="description">
+			<p class="title">What's This?</p>
+			<p>An audio based animation made with WebGL</p>
+			<p>Enter a SoundCloud &quot;track ID&quot; in the input element
+			at the top of the page, click on the play button and enjoy</p>
+			<p class="right"><a href="/">back</a></p>
+		</div>
 	</body>
 </html>
