@@ -1,45 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
+		<link rel="icon" href="data:,">
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width,initial-scale=1" />
-		<style>
-			body{font-family:sans-serif}
-			ul,li{list-style-type:none;padding:0}
-			li a:link,li a:visited{padding:4px}
-			li a:hover{font-size:2.1em}
-			.big{font: bolder 4.0em sans-serif;}
-		</style>
+		<script>
+			onload = ()=> {
+				f=[
+					"files/2021-02-07.html",
+					"files/2020-03-01-01.html",
+					"files/2020-02-29-01.html",
+					"files/2019-02-23.html",
+					"files/2017-03-19-01.html",
+					"files/2017-03-19-02.html",
+					"files/bit101-01.html",
+					"files/gl-blobs-02.html",
+					"files/gl-walk-01.html",
+					"files/gl-walk-03.html",
+					"files/particles03.html",
+					"files/particles02.html",
+					"files/pixi-particles-01.html",
+					"files/pixi-particles-02.html",
+				];
+				i=f[Math.floor(Math.random()*f.length)];
+				location.href=i;
+			};
+		</script>
 	</head>
 	<body>
-		<p><span class="big">Hi!</span>&nbsp;I&apos;m julien.</p>
-
-		<p>On the web, you can find me on
-			<a href="https://github.com/julien">GitHub</a>.</p>
-
-		<p>On this site, you'll find various experiments I made for fun
-			<br><em>(JavaScript is required, sorry about that. You can also check my <a href="/notes">notes</a> page)</em>.
-		</p>
-
-		<ul class="list">
-			<!-- <li><a href="files/2021-02-07.html">2021-02-07.html</a></li> -->
-			<li><a href="files/2021-02-05.html">2021-02-05.html</a></li>
-			<li><a href="files/2020-03-01-01.html">2020-03-01-01.html</a></li>
-			<li><a href="files/2020-02-29-01.html">2020-02-29-01.html</a></li>
-			<li><a href="files/2019-02-23.html">2019-02-23.html</a></li>
-			<li><a href="files/2017-03-19-01.html">2017-03-19-01.html</a></li>
-			<li><a href="files/2017-03-19-02.html">2017-03-19-02.html</a></li>
-			<li><a href="files/bit101-01.html">bit101-01.html</a></li>
-			<li><a href="files/blobs.html">blobs.html</a></li>
-			<li><a href="files/gl-blobs-02.html">gl-blobs02.html</a></li>
-			<li><a href="files/gl-blobs-01.html">gl-blobs01.html</a></li>
-			<li><a href="files/gl-walk-01.html">gl-walk-01.html</a></li>
-			<li><a href="files/gl-walk-02.html">gl-walk-02.html</a></li>
-			<li><a href="files/gl-walk-03.html">gl-walk-03.html</a></li>
-			<li><a href="files/particles03.html">particles03.html</a></li>
-			<li><a href="files/particles02.html">particles02.html</a></li>
-			<li><a href="files/pixi-particles-01.html">pixi-particles01.html</a></li>
-			<li><a href="files/pixi-particles-02.html">pixi-particles-02.html</a></li>
-		</ul>
 	</body>
 </html>
