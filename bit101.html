@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+			}
+			html,
+			body {
+				height: 100%;
+				width: 100;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+		<canvas id="c"></canvas>
+		<script src="bit101.js"></script>
+		<script type="module">
+			import {wait} from './index.js';
+			onload=()=>{wait();};
+		</script>
+	</body>
+</html>

@@ -19,7 +19,6 @@
 
 		<script type="x-shader/x-vertex" id="vs">
 			attribute vec4 aPosition;
-			uniform float uTime;
 
 			void main() {
 			  gl_PointSize = 2.0;
@@ -30,40 +29,36 @@
 		<script type="x-shader/x-fragment" id="fs">
 			precision mediump float;
 
-			uniform vec4 uColor;
-
 			void main() {
-			  gl_FragColor = uColor;
+			  gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
 			}
 		</script>
 
-		<script src="noise.js"></script>
-
 		<script>
+			var utils = {};
+
+			utils.createShader = function(gl, src, type) {
+				var shader = gl.createShader(type);
+				gl.shaderSource(shader, src);
+				gl.compileShader(shader);
+				var err;
+				if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+					err = gl.getShaderInfoLog(shader);
+					gl.deleteShader(shader);
+					throw err;
+				}
+				return shader;
+			};
+
+			utils.randomRange = function(min, max) {
+				return min + Math.random() * (max - min);
+			};
+
+			utils.map = function(n, start1, stop1, start2, stop2) {
+				return ((n - start1) / (stop1 - start1)) * (stop2 - start2) + start2;
+			};
+
 			window.addEventListener("load", function() {
-				var utils = {};
-
-				utils.createShader = function(gl, src, type) {
-					var shader = gl.createShader(type);
-					gl.shaderSource(shader, src);
-					gl.compileShader(shader);
-					var err;
-					if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-						err = gl.getShaderInfoLog(shader);
-						gl.deleteShader(shader);
-						throw err;
-					}
-					return shader;
-				};
-
-				utils.randomRange = function(min, max) {
-					return min + Math.random() * (max - min);
-				};
-
-				utils.map = function(n, start1, stop1, start2, stop2) {
-					return ((n - start1) / (stop1 - start1)) * (stop2 - start2) + start2;
-				};
-
 				var winW = window.innerWidth;
 				var winH = window.innerHeight;
 				var canvas = document.getElementById("canvas");
@@ -80,8 +75,6 @@
 				var info;
 				var aPositionBuffer;
 				var aPositions = [];
-				var aColors = [];
-				var uTime = 0;
 
 				init();
 
@@ -127,9 +120,7 @@
 					gl.useProgram(program);
 
 					info = {
-						aPosition: gl.getAttribLocation(program, "aPosition"),
-						uTime: gl.getUniformLocation(program, "uTime"),
-						uColor: gl.getUniformLocation(program, "uColor")
+						aPosition: gl.getAttribLocation(program, "aPosition")
 					};
 				}
 
@@ -156,9 +147,6 @@
 				function draw() {
 					gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-					uTime += 0.1;
-					gl.uniform1f(info.uTime, uTime);
-
 					update();
 
 					gl.bindBuffer(gl.ARRAY_BUFFER, aPositionBuffer);
@@ -176,18 +164,6 @@
 						0
 					);
 					gl.drawArrays(gl.POINTS, 0, aPositions.length / 2);
-
-					var i = 0;
-					var l = aColors.length;
-					for (; i < l; i += 4) {
-						gl.uniform4f(
-							info.uColor,
-							aColors[i],
-							aColors[i + 1],
-							aColors[i + 2],
-							aColors[i + 3]
-						);
-					}
 				}
 
 				function createParticle(w, h) {
@@ -196,17 +172,17 @@
 						y: h / 2 + utils.randomRange(-2, 2),
 						w: winW,
 						h: winH,
-						tx: utils.randomRange(-10, 10),
+						tx: 0,
 						ty: utils.randomRange(-100, 100),
-						life: 1000
+						life: 400
 					};
 				}
 
 				function update() {
-					particle.x = utils.map(noise(particle.tx), 0, 1, 0, particle.w);
-					particle.y = utils.map(noise(particle.ty), 0, 1, 0, particle.h);
-					particle.tx += 0.01;
-					particle.ty += 0.01;
+					var speedX = utils.randomRange(-5, 5);
+					var speedY = utils.randomRange(-5, 5);
+					particle.x += speedX;
+					particle.y += speedY;
 
 					if (particle.x > particle.w) {
 						particle.x = 0;
@@ -227,24 +203,7 @@
 						(canvas.height / 2 - (particle.y - canvasRect.top)) /
 						(canvas.height / 2);
 
-					particle.life -= 0.5;
-					if (particle.life <= 0) {
-						// reset/randomize
-						aPositions = [];
-
-						particle.x = winW / 2 + utils.randomRange(-2, 2);
-						particle.y = winH / 2 + utils.randomRange(-2, 2);
-						particle.w = winW;
-						particle.h = winH;
-						particle.tx = utils.randomRange(-10, 10);
-						particle.ty = utils.randomRange(-100, 100);
-						particle.life = 1000;
-					}
-
 					aPositions.push(x, y);
-
-					var alpha = utils.map(particle.life, 0, 1000, 0, 1);
-					aColors.push(1.0, 1.0, 1.0, alpha);
 				}
 
 				window.addEventListener(
@@ -259,6 +218,10 @@
 					false
 				);
 			});
+		</script>
+		<script type="module">
+			import {wait} from './index.js';
+			wait();
 		</script>
 	</body>
 </html>

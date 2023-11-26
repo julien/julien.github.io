@@ -1,5 +1,5 @@
 (function () {
-  /* this is a port of Keith Peter's (@bit-101) ActionScript code */
+  /* This is a port of Keith Peter's (bit101) ActionScript code */
   var degreesToRadians
     , isCanvas
     , checkDistance

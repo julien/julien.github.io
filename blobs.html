@@ -67,7 +67,9 @@
 			  pos.x *= v_Mouse.x + cos(v_Time * 0.5) + 0.5 - 0.5;
 			  pos.y *= v_Mouse.y + sin(v_Time * 0.5) + 0.5 - 0.5;
 
-			  gl_FragColor = vec4(pos.s, pos.t, 1.0, 1.0);
+			  // gl_FragColor = vec4(pos.s, pos.t, 1.0, 1.0);
+
+			  gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
 			}
 		</script>
 
@@ -92,30 +94,36 @@
 					let points = [];
 					let numPoints = 5000;
 					let pointSize = 7;
-					const damp = -0.9;
+					const damp = -1.0;
 
 					document.addEventListener("mousemove", mouseMove, false);
 
-					const mouse = {
-						x: 0.5,
-						y: 0.5,
-						r: 0.1,
+					const numBlobs = 10;
+					const blobs = [];
 
-						nx: -1 + Math.random() * (1 - -1),
-						ny: -1 + Math.random() * (1 - -1),
-						nr: 0.1 + Math.random() * (1.0 - 0.1),
+					function makeBlob() {
+						return {
+							x: -0.5 + Math.random() * (0.5 - -0.5),
+							y: -0.5 + Math.random() * (0.5 - -0.5),
+							r: 0.1 + Math.random() * (0.4 - 0.1),
 
-						ex: 0.02 + Math.random() * (0.1 - 0.02),
-						ey: 0.02 + Math.random() * (0.1 - 0.02),
-						er: 0.02 + Math.random() * (0.1 - 0.02),
+							nx: -1 + Math.random() * (1 - -1),
+							ny: -1 + Math.random() * (1 - -1),
+							nr: 0.1 + Math.random() * (1.0 - 0.1),
 
-						clientX: 0,
-						clientY: 0
-					};
+							ex: 0.02 + Math.random() * (0.1 - 0.02),
+							ey: 0.02 + Math.random() * (0.1 - 0.02),
+							er: 0.02 + Math.random() * (0.1 - 0.02)
+						};
+					}
 
 					init();
 
 					function init() {
+						for (let i = 0; i < numBlobs; i++) {
+							blobs.push(makeBlob());
+						}
+
 						const vshader = document.getElementById("vshader").textContent;
 						const fshader = document.getElementById("fshader").textContent;
 
@@ -201,8 +209,6 @@
 						const size = pointSize;
 						const len = numPoints * size;
 
-						// // apply force here
-
 						for (let i = 0; i < len; i += size) {
 							// x:    points[i]
 							// y:    points[i+1]
@@ -212,10 +218,6 @@
 							// ax:   points[i+5]
 							// ay:   points[i+6]
 
-							const dx = points[i] - mouse.x;
-							const dy = points[i + 1] - mouse.y;
-							const dist = Math.sqrt(dx * dx + dy * dy);
-
 							// velocity += acceleration
 							points[i + 3] += points[i + 5];
 							points[i + 4] += points[i + 6];
@@ -224,75 +226,75 @@
 							points[i + 5] *= 0;
 							points[i + 6] *= 0;
 
-							if (dist < mouse.r) {
-								points[i] = mouse.x + (dx / dist) * mouse.r;
-								points[i + 1] = mouse.y + (dy / dist) * mouse.r;
+							const l = blobs.length;
+							for (let k = 0; k < l; k++) {
+								const dx = points[i] - blobs[k].x;
+								const dy = points[i + 1] - blobs[k].y;
+								const dist = Math.sqrt(dx * dx + dy * dy);
+
+								if (dist < blobs[k].r) {
+									points[i] = blobs[k].x + (dx / dist) * blobs[k].r;
+									points[i + 1] = blobs[k].y + (dy / dist) * blobs[k].r;
+									points[i + 2] = 1 + Math.random() * (5 - 1);
+								} else {
+									while (points[i + 2] > 2) {
+										points[i + 2] -= 0.1;
+									}
+								}
 							}
 
 							// position += velocity
-							points[i] += points[i + 3];
-							points[i + 1] += points[i + 4];
+							points[i] += points[i + 3]; // * Math.cos(blob.r * 0.8);
+							points[i + 1] += points[i + 4]; // * Math.sin(blob.r * 0.5);
 
 							// check edges
 							if (points[i] > 1.0) {
-								points[i] = 1.0;
-								points[i + 3] *= damp;
-							} else if (points[i] < -1.0) {
 								points[i] = -1.0;
-								points[i + 3] *= damp;
+							} else if (points[i] < -1.0) {
+								points[i] = 1.0;
 							}
-
 							if (points[i + 1] > 1.0) {
-								points[i + 1] = 1.0;
-								points[i + 4] *= damp;
-							} else if (points[i + 1] < -1.0) {
 								points[i + 1] = -1.0;
-								points[i + 4] *= damp;
+							} else if (points[i + 1] < -1.0) {
+								points[i + 1] = 1.0;
 							}
 						}
 
 						gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(points));
 					}
 
-					function addRandomPoints() {
-						for (let i = 0; i < 100; ++i) {
-							pool.getFree().set(
-								// position
-								-1.0 + Math.random() * (1.0 - -1.0),
-								-1.0 + Math.random() * (1.0 - -1.0),
+					function updateBlobs() {
+						const l = blobs.length;
+						for (let i = 0; i < l; i++) {
+							if (!updateBlob(blobs[i])) {
+								blobs[i].ex = 0.02 + Math.random() * (0.07 - 0.02);
+								blobs[i].ey = 0.02 + Math.random() * (0.07 - 0.02);
+								blobs[i].er = 0.01 + Math.random() * (0.05 - 0.01);
 
-								// pointsize
-								Math.floor(1 + Math.random() * (4 - 1)),
-
-								// vx
-								-0.03 + Math.random() * (0.03 - -0.03),
-								-0.03 + Math.random() * (0.03 - -0.03),
-
-								// ax
-								-0.009 + Math.random() * (-0.002 - -0.009),
-								-0.009 + Math.random() * (-0.002 - -0.009)
-							);
+								blobs[i].nx = -0.9 + Math.random() * (1 - -0.9);
+								blobs[i].ny = -0.9 + Math.random() * (1 - -0.9);
+								blobs[i].nr = 0.01 + Math.random() * (0.3 - 0.01);
+							}
 						}
-						points = points.concat(flattenPool(pool));
 					}
 
-					function updateMouse() {
-						let vx = mouse.nx - mouse.x;
-						let vy = mouse.ny - mouse.y;
-						let vr = mouse.nr - mouse.r;
+					function updateBlob(blob) {
+						let vx = blob.nx - blob.x;
+						let vy = blob.ny - blob.y;
+						let vr = blob.nr - blob.r;
 
 						let ax = Math.abs(vx) > 0.1;
 						let ay = Math.abs(vy) > 0.1;
 						let ar = Math.abs(vr) > 0.1;
 
 						if (ax && ay && ar) {
-							vx *= mouse.ex;
-							vy *= mouse.ey;
-							vr *= mouse.er;
+							vx *= blob.ex;
+							vy *= blob.ey;
+							vr *= blob.er;
 
-							mouse.x += vx;
-							mouse.y += vy;
-							mouse.r += vr;
+							blob.x += vx;
+							blob.y += vy;
+							blob.r += vr;
 
 							return 1;
 						} else {
@@ -300,7 +302,18 @@
 						}
 					}
 
-					function addRandomPoints() {}
+					function checkBlobCollision(x, y) {
+						const l = blobs.length;
+						for (let i = 0; i < l; i++) {
+							const dx = x - blobs[i].x;
+							const dy = y - blobs[i].y;
+							const dist = Math.sqrt(dx * dx + dy * dy);
+							if (dist < blobs[i].r) {
+								x = blobs[i].x + (dx / dist) * blobs[i].r;
+								y = blobs[i].y + (dy / dist) * blobs[i].r;
+							}
+						}
+					}
 
 					function loop() {
 						requestAnimationFrame(loop);
@@ -309,16 +322,7 @@
 						gl.uniform1f(info.u_Time, (Date.now() - start_time) / 3000);
 
 						updatePoints();
-
-						if (!updateMouse()) {
-							mouse.ex = 0.07 + Math.random() * (0.1 - 0.07);
-							mouse.ey = 0.05 + Math.random() * (0.1 - 0.05);
-							mouse.er = 0.01 + Math.random() * (0.05 - 0.01);
-
-							mouse.nx = -0.9 + Math.random() * (1 - -0.9);
-							mouse.ny = -0.9 + Math.random() * (1 - -0.9);
-							mouse.nr = 0.01 + Math.random() * (0.3 - 0.01);
-						}
+						updateBlobs();
 
 						const num = points.length / pointSize;
 
@@ -341,10 +345,10 @@
 					}
 
 					function mouseMove(e) {
-						mouse.clientX = map(e.clientX, 0, gl.canvas.clientWidth, -1, 1);
-						mouse.clientY = map(e.clientY, 0, gl.canvas.clientHeight, 1, -1);
+						const clientX = map(e.clientX, 0, gl.canvas.clientWidth, -1, 1);
+						const clientY = map(e.clientY, 0, gl.canvas.clientHeight, 1, -1);
 
-						gl.uniform2f(info.u_Mouse, mouse.clientX, mouse.clientY);
+						gl.uniform2f(info.u_Mouse, clientX, clientY);
 					}
 
 					function norm(value, min, max) {
@@ -413,6 +417,10 @@
 				},
 				false
 			);
+		</script>
+		<script type="module">
+			import {wait} from './index.js';
+			wait();
 		</script>
 	</body>
 </html>

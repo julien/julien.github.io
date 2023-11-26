@@ -26,12 +26,13 @@
 		<script id="vshader" type="x-shader/x-vertex">
 			attribute vec2 a_Position;
 			uniform vec2 u_Resolution;
+			uniform float u_PointSize;
 
 			void main () {
 			  vec2 zeroToOne = a_Position / u_Resolution;
 			  vec2 zeroToTwo = zeroToOne * 2.0;
 			  vec2 clipSpace = zeroToTwo - 1.0;
-			  gl_PointSize = 2.0;
+			  gl_PointSize = u_PointSize;
 			  gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 1.0, 1.0);
 			}
 		</script>
@@ -69,12 +70,18 @@
 
 					const res = 20;
 
-					let mouseK = 0.9;
-					let mouseRadius = 80;
+					let mouseK = 0.6;
+					let mouseMaxRadius = 200;
+					let mouseMinRadius = 20;
+					let mouseRadius = mouseMinRadius;
+					let mouseRadiusInc = 2.0;
 					let mouseX = width / 2;
 					let mouseY = height / 2;
+					let mouseIsDown = false;
 
 					document.addEventListener("mousemove", mouseMove, false);
+					document.addEventListener("mousedown", mouseDown, false);
+					document.addEventListener("mouseup", mouseUp, false);
 
 					init();
 
@@ -93,6 +100,7 @@
 							gl.canvas.clientWidth,
 							gl.canvas.clientHeight
 						);
+						gl.uniform1f(info.u_PointSize, 2.0);
 
 						initBuffers();
 						loop();
@@ -116,7 +124,7 @@
 									0,
 
 									// damp, bounce
-									0.095,
+									0.5,
 									-1,
 
 									// target x, y, k
@@ -153,8 +161,17 @@
 						requestAnimationFrame(loop);
 						resizeCanvas(gl, innerWidth, innerHeight);
 
-						updatePoints();
+						if (mouseIsDown) {
+							if (mouseRadius <= mouseMaxRadius) {
+								mouseRadius += mouseRadiusInc;
+							}
+						} else {
+							if (mouseRadius > mouseMinRadius) {
+								mouseRadius -= mouseRadiusInc;
+							}
+						}
 
+						updatePoints();
 						const num = points.length / pointSize;
 
 						gl.clear(gl.COLOR_BUFFER_BIT);
@@ -231,6 +248,13 @@
 						mouseY = e.clientY;
 					}
 
+					function mouseDown() {
+						mouseIsDown = true;
+					}
+					function mouseUp() {
+						mouseIsDown = false;
+					}
+
 					function createShader(gl, str, type) {
 						const shader = gl.createShader(type);
 						gl.shaderSource(shader, str);
@@ -285,6 +309,10 @@
 				},
 				false
 			);
+		</script>
+		<script type="module">
+			import {wait} from './index.js';
+			wait();
 		</script>
 	</body>
 </html>

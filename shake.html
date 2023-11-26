@@ -92,7 +92,7 @@
 				}
 
 				//---
-				particleTexture = new PIXI.Texture.fromImage("particle03.png");
+				particleTexture = new PIXI.Texture.fromImage("particle.png");
 
 				function Particle(x, y) {
 					PIXI.Sprite.call(this, particleTexture);
@@ -232,6 +232,10 @@
 
 				init();
 			};
+		</script>
+		<script type="module">
+			import {wait} from './index.js';
+			wait();
 		</script>
 	</body>
 </html>

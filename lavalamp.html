@@ -21,8 +21,8 @@
 			onload = function() {
 				var WIDTH = innerWidth;
 				var HEIGHT = innerHeight;
-				var NUM_BLOBS = 50;
-				var BLOB_SIZE = 5;
+				var NUM_BLOBS = WIDTH > 600 ? 80 : 30;
+				var BLOB_SIZE = 14;
 
 				var c = document.getElementById("c");
 				c.width = WIDTH;
@@ -56,7 +56,7 @@
 						v += r*r / (dx*dx + dy*dy);
 					}
 					if (v > 1.0) {
-						gl_FragColor = vec4((x/WIDTH), (x*y/HEIGHT), (y/HEIGHT), 1.0);
+						gl_FragColor = vec4((x / WIDTH), 0., (y / HEIGHT), 1.0);
 					} else {
 						gl_FragColor = vec4(0., 0., 0., 1.);
 					}
@@ -101,22 +101,9 @@
 
 				var locBlobs = g.getUniformLocation(prog, "blobs");
 
-				var easing = 0.0009;
-				var friction = 0.895;
-				var spring = 0.005;
-				var centerX = WIDTH * 0.5;
-				var centerY = HEIGHT * 0.5;
-				var targetX = -centerX + Math.random() * (centerX - -centerX);
-				var targetY = -centerY + Math.random() * (centerY - -centerY);
-				var centerXY = Math.min(centerX, centerY);
-				var radius =
-					centerXY + Math.random() * (centerXY * 0.5 - -centerXY * 0.5);
-				var velX = 0;
-				var velY = 0;
 				var blobs = [];
-
 				for (var i = 0; i < NUM_BLOBS; i++) {
-					var radius = 1 + Math.random() * (12 - 4);
+					var radius = 5 + Math.random() * (10 - 5);
 
 					blobs.push(
 						// x, y, radius [0,1,2]
@@ -124,47 +111,84 @@
 						Math.random() * (HEIGHT - 2 * radius) + radius,
 						radius,
 
-						// velocity [3,4]
-						0,
-						0
+						// acceleration [3,4,5]
+						1 + Math.random() * (3 - 1),
+						1 + Math.random() * (3 - 1),
+						0.02 + Math.random() * (0.07 - 0.02),
+
+						// velocity [6,7]
+						2 + Math.random() * (4 - 2),
+						2 + Math.random() * (4 - 2),
+
+						// next values [8,9,10]
+						Math.random() * (WIDTH - 2 * radius) + radius,
+						Math.random() * (HEIGHT - 2 * radius) + radius,
+						10 + Math.random() * (20 - 10),
+
+						// easing [11,12,13]
+						0.02 + Math.random() * (0.07 - 0.02),
+						0.02 + Math.random() * (0.07 - 0.02),
+						0.01 + Math.random() * (0.02 - 0.01)
 					);
 				}
 
 				requestAnimationFrame(function loop() {
 					requestAnimationFrame(loop);
 
-					var ax = (targetX - centerX) * easing;
-					var ay = (targetY - centerY) * easing;
-					if (Math.abs(ax) < 1 && Math.abs(ay) < 1) {
-						targetX = -centerX + Math.random() * (centerX - -centerX);
-						targetY = -centerY + Math.random() * (centerY - -centerY);
-						radius =
-							centerXY + Math.random() * (centerXY * 0.5 - -centerXY * 0.5);
-					} else {
-						velX += ax * 0.005;
-						velY += ay * 0.005;
-						centerX += velX;
-						centerY += velY;
-					}
-
 					var len = NUM_BLOBS * BLOB_SIZE;
+
 					for (var i = 0; i < len; i += BLOB_SIZE) {
-						var rr = radius * 2;
-						var vx =
-							(centerX - (blobs[i + 0] + (-rr + Math.random() * (rr - -rr)))) *
-							spring;
-						var vy =
-							(centerY - (blobs[i + 1] + (-rr + Math.random() * (rr - -rr)))) *
-							spring;
+						blobs[i + 6] += blobs[i + 3];
+						blobs[i + 7] += blobs[i + 4];
 
-						blobs[i + 3] += vx;
-						blobs[i + 3] *= friction;
+						blobs[i + 3] *= 0;
+						blobs[i + 4] *= 0;
 
-						blobs[i + 4] += vy;
-						blobs[i + 4] *= friction;
+						if (blobs[i + 0] - blobs[i + 2] < 0) {
+							blobs[i + 0] = blobs[i + 2] + 1;
+							blobs[i + 6] *= -1;
+						} else if (blobs[i + 0] + blobs[i + 2] > WIDTH) {
+							blobs[i + 0] = WIDTH - blobs[i + 2];
+							blobs[i + 6] *= -1;
+						}
 
-						blobs[i + 0] += blobs[i + 3];
-						blobs[i + 1] += blobs[i + 4];
+						if (blobs[i + 1] - blobs[i + 2] < 0) {
+							blobs[i + 1] = blobs[i + 2];
+							blobs[i + 7] *= -1;
+						} else if (blobs[i + 1] + blobs[i + 2] > HEIGHT) {
+							blobs[i + 1] = HEIGHT - blobs[i + 2];
+							blobs[i + 7] *= -1;
+						}
+
+						blobs[i + 0] += blobs[i + 6];
+						blobs[i + 1] += blobs[i + 7];
+
+						var vx = blobs[i + 8] - blobs[i + 0];
+						var vy = blobs[i + 9] - blobs[i + 1];
+						var vr = blobs[i + 10] - blobs[i + 2];
+
+						var ax = Math.abs(vx) > 0.1;
+						var ay = Math.abs(vy) > 0.1;
+						var ar = Math.abs(vr) > 0.1;
+
+						if (ax && ay && ar) {
+							vx *= blobs[i + 11];
+							vy *= blobs[i + 12];
+							vr *= blobs[i + 13];
+
+							blobs[i + 0] += vx;
+							blobs[i + 1] += vy;
+							blobs[i + 2] += vr;
+						} else {
+							blobs[i + 11] = 0.02 + Math.random() * (0.07 - 0.02);
+							blobs[i + 12] = 0.02 + Math.random() * (0.07 - 0.02);
+							blobs[i + 13] = 0.01 + Math.random() * (0.02 - 0.01);
+
+							var radius = 10 + Math.random() * (20 - 10);
+							blobs[i + 8] = Math.random() * (WIDTH - 2 * radius) + radius;
+							blobs[i + 9] = Math.random() * (HEIGHT - 2 * radius) + radius;
+							blobs[i + 10] = radius;
+						}
 					}
 
 					var data = new Float32Array(3 * NUM_BLOBS);
@@ -178,6 +202,10 @@
 					g.drawArrays(g.TRIANGLE_STRIP, 0, 4);
 				});
 			};
+		</script>
+		<script type="module">
+			import {wait} from './index.js';
+			wait();
 		</script>
 	</body>
 </html>

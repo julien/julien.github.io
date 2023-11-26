@@ -4,27 +4,9 @@
 		<link rel="icon" href="data:,">
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width,initial-scale=1" />
-		<script>
-			onload = ()=> {
-				f=[
-					"files/2021-02-07.html",
-					"files/2020-03-01-01.html",
-					"files/2020-02-29-01.html",
-					"files/2019-02-23.html",
-					"files/2017-03-19-01.html",
-					"files/2017-03-19-02.html",
-					"files/bit101-01.html",
-					"files/gl-blobs-02.html",
-					"files/gl-walk-01.html",
-					"files/gl-walk-03.html",
-					"files/particles03.html",
-					"files/particles02.html",
-					"files/pixi-particles-01.html",
-					"files/pixi-particles-02.html",
-				];
-				i=f[Math.floor(Math.random()*f.length)];
-				location.href=i;
-			};
+		<script type="module">
+			import {rndFile} from './index.js';
+			onload = ()=> { location.href = rndFile(); };
 		</script>
 	</head>
 	<body>

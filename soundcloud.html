@@ -6,8 +6,31 @@
 			audio{outline:none;position:absolute;top:5px;right:5px;z-index:10}
 			input{border:none;border-radius:18px;position:absolute;top:65px;right:18px;
 				outline:none;padding:8px;z-index:10;background:rgba(255,255,255,0.7)}
+			.description {
+				background: rgba(16, 16, 16, 0.5);
+				border-radius: 8px 8px 0 0;
+				bottom: 0px;
+				color: rgb(238, 238, 238);
+				font-family: sans-serif;
+				font-size: 0.9em;
+				height: auto;
+				max-width: 240px;
+				padding: 8px;
+				position: absolute;
+				right: 5px;
+				user-select: none;
+				width: auto;
+				z-index: 100;
+			}
+			.description .title {
+				text-transform: uppercase;
+				font-weight: bolder;
+			}
+			.description .right {
+				text-align: right;
+			}
 		</style>
-		<link rel="stylesheet" href="extras.css">
+
 	</head>
 	<body>
 		<script id="vsrc" type="text/vertex-shader">
@@ -69,7 +92,7 @@
 			}
 		</script>
 		<canvas id="canvas"></canvas>
-		<script src="2021-02-14.min.js"></script>
+		<script src="soundcloud.js"></script>
 		<div class="description">
 			<p class="title">What's This?</p>
 			<p>An audio based animation made with WebGL</p>
@@ -77,5 +100,9 @@
 			at the top of the page, click on the play button and enjoy</p>
 			<p class="right"><a href="/">back</a></p>
 		</div>
+		<script type="module">
+			import {wait} from './index.js';
+			wait();
+		</script>
 	</body>
 </html>
