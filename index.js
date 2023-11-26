@@ -20,8 +20,8 @@ export function rndFile() {
 export function wait() {
 	setTimeout(() => {
 		let next = rndFile();
-		let curr = window.location.pathname.split("/").pop();
-		if (next !== curr) {
+		let curr = location.pathname.split("/").pop();
+		if (next !== curr && !location.href.endsWith("?s")) {
 			location.href = next;	
 		}
 	}, 10000);
