@@ -23,6 +23,8 @@ export function wait() {
 		let curr = location.pathname.split("/").pop();
 		if (next !== curr && !location.href.endsWith("?s")) {
 			location.href = next;	
+		} else {
+			location.href = '/';
 		}
 	}, 10000);
 }
