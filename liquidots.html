@@ -80,6 +80,17 @@
 					let mouseY = height / 2;
 					let mouseIsDown = false;
 
+					const mouse = [
+						0,                            // x
+						0,                            // y
+						(width * 0.5) + random(-300, 300),  // target x
+						(height * 0.5) + random(-300, 300), // target y
+						random(0.02, 0.3),            // vx
+						random(0.02, 0.3),            // vy
+						mouseMinRadius,               // radius
+						mouseMaxRadius,               // target radius
+					];
+
 					document.addEventListener("mousemove", mouseMove, false);
 					document.addEventListener("mousedown", mouseDown, false);
 					document.addEventListener("mouseup", mouseUp, false);
@@ -161,6 +172,30 @@
 					function loop() {
 						requestAnimationFrame(loop);
 						resizeCanvas(gl, innerWidth, innerHeight);
+
+						let dx = (mouse[2] - mouse[0]);
+						let dy = (mouse[3] - mouse[1]);
+						let dr = (mouse[7] - mouse[6]);
+
+						if (Math.abs(dx) < 1 && Math.abs(dy) < 1) {
+							mouse[2] = (innerWidth * 0.5) + random(-300, 300);
+							mouse[3] = (innerHeight * 0.5) + random(-300, 300);
+
+							mouse[4] = random(0.02, 0.3);
+							mouse[5] = random(0.02, 0.3);
+							mouse[6] = mouseMinRadius;
+						} else {
+							let vx = dx * mouse[4];
+							let vy = dy * mouse[5];
+							let vr = dr * mouse[5] * 0.1;
+							mouse[0] += vx;
+							mouse[1] += vy;
+							mouse[6] += vr;
+
+						}
+						mouseX = mouse[0];
+						mouseY = mouse[1];
+						mouseRadius = mouse[6];
 
 						if (mouseIsDown) {
 							if (mouseRadius <= mouseMaxRadius) {
@@ -252,6 +287,7 @@
 					function mouseDown() {
 						mouseIsDown = true;
 					}
+
 					function mouseUp() {
 						mouseIsDown = false;
 					}
@@ -306,6 +342,10 @@
 						}
 
 						return info;
+					}
+
+					function random(min, max) {
+						return (Math.random() * (max - min)) + min;
 					}
 				},
 				false
