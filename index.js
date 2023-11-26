@@ -5,12 +5,10 @@ const files = [
 	"bouncydots.html",
 	"liquidots.html",
 	"bit101.html",
-	"soundcloud.html",
 	"blobs.html",
 	"trails.html",
 	"shake.html",
-	"random.html",
-	"wut.html"
+	"random.html"
 ];
 
 export function rndFile() {
