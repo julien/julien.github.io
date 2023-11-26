@@ -19,9 +19,12 @@ export function rndFile() {
 
 export function wait() {
 	setTimeout(() => {
+		if (location.href.endsWith("?s")) {
+			return;
+		}
 		let next = rndFile();
 		let curr = location.pathname.split("/").pop();
-		if (next !== curr && !location.href.endsWith("?s")) {
+		if (next !== curr) {
 			location.href = next;	
 		} else {
 			location.href = '/';
