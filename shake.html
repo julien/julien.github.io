@@ -30,7 +30,13 @@
 					dragging;
 
 				function captureMouse(el) {
-					var mouse = { x: 0, y: 0, down: false };
+					var mouse = {
+						tx: (screenW * .5) + randomRange(-500, 500),
+						ty: (screenH * .5) + randomRange(-500, 500),
+						x: 0,
+						y: 0,
+						down: true
+					};
 
 					el.addEventListener(
 						"mousemove",
@@ -148,6 +154,25 @@
 				}
 
 				function update() {
+					// update mouse
+					var dx = mouse.tx - mouse.x;
+					var dy = mouse.ty - mouse.y;
+					
+					if (Math.abs(dx) < 1 && Math.abs(dy) < 1) {
+						mouse.tx = (screenW * .5) + randomRange(-500, 500);
+						mouse.ty = (screenH * .5) + randomRange(-500, 500);
+						mouse.down = false;
+					} else {
+						var vx = dx * randomRange(0.01, 0.1);
+						var vy = dy * randomRange(0.01, 0.2);
+						mouse.x += vx;
+						mouse.y += vy;
+						mouse.down = true;
+						dragging = 1;
+						mouseMove();
+					}
+
+
 					var it;
 
 					it = particles.length;
