@@ -1,14 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<link rel="icon" href="data:,">
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width,initial-scale=1" />
-		<script type="module">
-			import {rndFile} from './index.js';
-			onload = ()=> { location.href = rndFile(); };
-		</script>
-	</head>
-	<body>
-	</body>
+<head>
+    <link rel="icon" href="data:,">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+	<link rel="stylesheet" href="style.css" />
+    <title><hello></title>
+    <style>
+       body {
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #000;
+				color: #fefefe;
+            }
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            width: 40%;
+            max-width: 840px;
+            margin: 0 auto;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+
+        .grid img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+			transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+		.grid img:hover {
+			transform: scale(1.3);
+		}
+
+        .content {
+            padding: 0;
+            width: 100%;
+            text-align: left;
+        }
+
+		.content span {
+			display: inline-block;
+			margin: 5px;
+			font-weight: bold;
+			opacity: 0.85;
+			transition: transform 0.1s ease-out;
+		}
+
+		.content span:hover {
+			transform: scale(1.2);
+			opacity: 1;
+		}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="grid">
+            <a href="blobs.html"><img src="blobs.jpg"></a>
+            <a href="flies.html"><img src="flies.jpg"></a>
+            <a href="shake.html"><img src="shake.jpg" ></a>
+            <a href="lavalamp.html"><img src="lavalamp.jpg"></a>
+            <a href="bouncydots.html"><img src="bouncydots.jpg"></a>
+            <a href="liquidots.html"><img src="liquidots.jpg"></a>
+            <a href="popcorn.html"><img src="popcorn.jpg"></a>
+            <a href="bit101.html"><img src="bit101.jpg"></a>
+            <a href="trails.html"><img src="trails.jpg"></a>
+            <a href="random.html"><img src="random.jpg"></a>
+        </div>
+
+		<div class="content" id="content"></div>
+    </div>
+
+	<script>
+		document.addEventListener("DOMContentLoaded", () => {
+			const words = [
+				"Hello", "Hola", "Bonjour", "Hallo", "Ciao", "Olá", "Привет", "你好",
+				"こんにちは", "안녕하세요", "Merhaba", "שלום", "नमस्ते", "Hej", "Hei",
+				"Selam", "Ahoj", "Szia", "Χαίρετε", "Salve"
+			];
+
+			function shuffle(src) {
+				for (let i = src.length - 1; i > 0; i--) {
+					const j = Math.floor(Math.random() * (i + 1));
+					[src[i], src[j]] = [src[j], src[i]];
+				}
+			}
+			shuffle(words);
+			const content = document.getElementById("content");
+			const frag = document.createDocumentFragment();
+			for (let i = 0; i < words.length; i++) {
+				const span = document.createElement("span");
+				span.textContent = words[i];
+				span.classList.add("hello-word");
+				span.style.fontSize = (Math.random() * 1.2 + 1.6).toFixed(1) + "em";
+
+				frag.appendChild(span);	
+
+			}
+			content.appendChild(frag);
+		});
+	</script>
+</body>
 </html>

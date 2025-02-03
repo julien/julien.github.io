@@ -1,189 +1,185 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta
-			name="viewport"
-			content="width=device-width,minimum-scale=1,initial-scale=1"
-		/>
-		<style>
-			body,
-			html {
-				margin: 0;
-				width: 100%;
-				height: 100%;
-				overflow: hidden;
-			}
-		</style>
-		<link rel="icon" href="data:,">
-	</head>
-	<body>
-		<canvas id="c"></canvas>
-		<script>
-			onload = function() {
-				var WIDTH = innerWidth;
-				var HEIGHT = innerHeight;
-				var NUM_BLOBS = 50;
-				var BLOB_SIZE = 5;
+    <head>
+        <meta
+            name="viewport"
+            content="width=device-width,minimum-scale=1,initial-scale=1"
+        />
+        <style>
+            body,
+            html {
+                margin: 0;
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+            }
+        </style>
+		<link rel="stylesheet" href="style.css" />
+        <link rel="icon" href="data:,">
+    </head>
+    <body>
+        <canvas id="c"></canvas>
+        <script>
+            onload = function() {
+                var WIDTH = innerWidth;
+                var HEIGHT = innerHeight;
+                var NUM_BLOBS = 512;
+                var BLOB_SIZE = 5;
 
-				var c = document.getElementById("c");
-				c.width = WIDTH;
-				c.height = HEIGHT;
+                var c = document.getElementById("c");
+                c.width = WIDTH;
+                c.height = HEIGHT;
 
-				var g = c.getContext("webgl");
-				if (!g) throw "failed to initialize WebGL";
+                var g = c.getContext("webgl");
+                if (!g) throw "failed to initialize WebGL";
 
-				var vertexShader = `precision lowp float;
-				attribute vec2 position;
+                var vertexShader = `precision lowp float;
+                attribute vec2 position;
 
-				void main() {
-					gl_Position = vec4(position, .0, 1.);
-				}`;
+                void main() {
+                    gl_Position = vec4(position, .0, 1.);
+                }`;
 
-				var fragmentShader = `precision lowp float;
-				uniform vec3 blobs[${NUM_BLOBS}];
-				const float WIDTH = ${WIDTH}.0;
-				const float HEIGHT = ${HEIGHT}.0;
+                var fragmentShader = `precision lowp float;
+                uniform vec3 blobs[${NUM_BLOBS}];
+                const float WIDTH = ${WIDTH}.0;
+                const float HEIGHT = ${HEIGHT}.0;
 
-				void main() {
-					float x = gl_FragCoord.x;
-					float y = gl_FragCoord.y;
-					float v = 0.0;
+                void main() {
+                    float x = gl_FragCoord.x;
+                    float y = gl_FragCoord.y;
+                    float v = 0.0;
 
-					for (int i = 0; i < ${NUM_BLOBS}; i++) {
-						vec3 b = blobs[i];
-						float dx = b.x - x;
-						float dy = b.y - y;
-						float r = b.z;
-						v += r*r / (dx*dx + dy*dy);
-					}
-					if (v > 1.0) {
-						gl_FragColor = vec4((x/WIDTH), (x*y/HEIGHT), (y/HEIGHT), 1.0);
-					} else {
-						gl_FragColor = vec4(0., 0., 0., 1.);
-					}
-				}
-				`;
+                    for (int i = 0; i < ${NUM_BLOBS}; i++) {
+                        vec3 b = blobs[i];
+                        float dx = b.x - x;
+                        float dy = b.y - y;
+                        float r = b.z;
+                        v += r*r / (dx*dx + dy*dy);
+                    }
+                    if (v > 1.0) {
+                        gl_FragColor = vec4((x/WIDTH), (x*y/HEIGHT), (y/HEIGHT), 1.0);
+                    } else {
+                        gl_FragColor = vec4(0., 0., 0., 1.);
+                    }
+                }
+                `;
 
-				var prog = g.createProgram();
-				var s;
+                var prog = g.createProgram();
+                var s;
 
-				g.shaderSource((s = g.createShader(g.VERTEX_SHADER)), vertexShader);
-				g.compileShader(s);
-				g.attachShader(prog, s);
+                g.shaderSource((s = g.createShader(g.VERTEX_SHADER)), vertexShader);
+                g.compileShader(s);
+                g.attachShader(prog, s);
 
-				g.shaderSource((s = g.createShader(g.FRAGMENT_SHADER)), fragmentShader);
-				g.compileShader(s);
-				g.attachShader(prog, s);
+                g.shaderSource((s = g.createShader(g.FRAGMENT_SHADER)), fragmentShader);
+                g.compileShader(s);
+                g.attachShader(prog, s);
 
-				g.blendFunc(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA);
-				g.enable(g.BLEND);
+                g.blendFunc(g.SRC_ALPHA, g.ONE_MINUS_SRC_ALPHA);
+                g.enable(g.BLEND);
 
-				g.linkProgram(prog);
-				g.useProgram(prog);
+                g.linkProgram(prog);
+                g.useProgram(prog);
 
-				var vertices = new Float32Array([
-					-1.0,
-					1.0,
-					-1.0,
-					-1.0,
-					1.0,
-					1.0,
-					1.0,
-					-1.0
-				]);
+                var vertices = new Float32Array([
+                    -1.0,
+                    1.0,
+                    -1.0,
+                    -1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    -1.0
+                ]);
 
-				var verticesBuffer = g.createBuffer();
-				g.bindBuffer(g.ARRAY_BUFFER, verticesBuffer);
-				g.bufferData(g.ARRAY_BUFFER, vertices, g.STATIC_DRAW);
+                var verticesBuffer = g.createBuffer();
+                g.bindBuffer(g.ARRAY_BUFFER, verticesBuffer);
+                g.bufferData(g.ARRAY_BUFFER, vertices, g.STATIC_DRAW);
 
-				var locPosition = g.getAttribLocation(prog, "position");
-				g.enableVertexAttribArray(locPosition);
-				g.vertexAttribPointer(locPosition, 2, g.FLOAT, g.FALSE, 2 * 4, 0);
+                var locPosition = g.getAttribLocation(prog, "position");
+                g.enableVertexAttribArray(locPosition);
+                g.vertexAttribPointer(locPosition, 2, g.FLOAT, g.FALSE, 2 * 4, 0);
 
-				var locBlobs = g.getUniformLocation(prog, "blobs");
+                var locBlobs = g.getUniformLocation(prog, "blobs");
 
-				var easing = 0.0009;
-				var friction = 0.895;
-				var spring = 0.005;
-				var centerX = WIDTH * 0.5;
-				var centerY = HEIGHT * 0.5;
-				var targetX = -centerX + Math.random() * (centerX - -centerX);
-				var targetY = -centerY + Math.random() * (centerY - -centerY);
-				var centerXY = Math.min(centerX, centerY);
-				var radius =
-					centerXY + Math.random() * (centerXY * 0.5 - -centerXY * 0.5);
-				var velX = 0;
-				var velY = 0;
-				var blobs = [];
+                var easing = 0.0001;
+                var friction = 0.895;
+                var spring = 0.005;
+                var centerX = WIDTH * 0.5;
+                var centerY = HEIGHT * 0.5;
+                var targetX = -centerX + Math.random() * (centerX - -centerX);
+                var targetY = -centerY + Math.random() * (centerY - -centerY);
+                var centerXY = Math.min(centerX, centerY);
+                var radius = centerXY + Math.random() * (centerXY * 0.5 - -centerXY * 0.5);
+                var velX = 0;
+                var velY = 0;
+                var blobs = [];
 
-				for (var i = 0; i < NUM_BLOBS; i++) {
-					var radius = 1 + Math.random() * (12 - 4);
+                for (var i = 0; i < NUM_BLOBS; i++) {
+                    var radius = 1 + Math.random() * (12 - 4);
 
-					blobs.push(
-						// x, y, radius [0,1,2]
-						Math.random() * (WIDTH - 2 * radius) + radius,
-						Math.random() * (HEIGHT - 2 * radius) + radius,
-						radius,
+                    blobs.push(
+                        // x, y, radius [0,1,2]
+                        Math.random() * (WIDTH - 2 * radius) + radius,
+                        Math.random() * (HEIGHT - 2 * radius) + radius,
+                        radius,
 
-						// velocity [3,4]
-						0,
-						0
-					);
-				}
+                        // velocity [3,4]
+                        0,
+                        0
+                    );
+                }
 
-				requestAnimationFrame(function loop() {
-					requestAnimationFrame(loop);
+                requestAnimationFrame(function loop() {
+                    var ax = (targetX - centerX) * easing;
+                    var ay = (targetY - centerY) * easing;
 
-					var ax = (targetX - centerX) * easing;
-					var ay = (targetY - centerY) * easing;
-					if (Math.abs(ax) < 1 && Math.abs(ay) < 1) {
-						targetX = -centerX + Math.random() * (centerX - -centerX);
-						targetY = -centerY + Math.random() * (centerY - -centerY);
-						radius =
-							centerXY + Math.random() * (centerXY * 0.5 - -centerXY * 0.5);
-					} else {
-						velX += ax * 0.005;
-						velY += ay * 0.005;
-						centerX += velX;
-						centerY += velY;
-					}
+                    if (Math.abs(ax) < 1 && Math.abs(ay) < 1) {
+                        targetX = -centerX + Math.random() * (centerX - -centerX);
+                        targetY = -centerY + Math.random() * (centerY - -centerY);
+                        radius  = centerXY + Math.random() * (centerXY * 0.5 - -centerXY * 0.5);
+                        velX = 0;
+                        velY = 0;
+                        ax = 0;
+                        ay = 0;
+                    } 
+                    
+                    velX += ax * 0.03;
+                    velY += ay * 0.05;
+                    centerX += velX;
+                    centerY += velY;
 
-					var len = NUM_BLOBS * BLOB_SIZE;
-					for (var i = 0; i < len; i += BLOB_SIZE) {
-						var rr = radius * 2;
-						var vx =
-							(centerX - (blobs[i + 0] + (-rr + Math.random() * (rr - -rr)))) *
-							spring;
-						var vy =
-							(centerY - (blobs[i + 1] + (-rr + Math.random() * (rr - -rr)))) *
-							spring;
+                    var len = NUM_BLOBS * BLOB_SIZE;
+                    for (var i = 0; i < len; i += BLOB_SIZE) {
+                        var rr = radius * 2;
+                        var vx = (centerX - (blobs[i + 0] + (-rr + Math.random() * (rr - -rr)))) * spring;
+                        var vy = (centerY - (blobs[i + 1] + (-rr + Math.random() * (rr - -rr)))) * spring;
 
-						blobs[i + 3] += vx;
-						blobs[i + 3] *= friction;
+                        blobs[i + 3] += vx;
+                        blobs[i + 3] *= friction;
 
-						blobs[i + 4] += vy;
-						blobs[i + 4] *= friction;
+                        blobs[i + 4] += vy;
+                        blobs[i + 4] *= friction;
 
-						blobs[i + 0] += blobs[i + 3];
-						blobs[i + 1] += blobs[i + 4];
-					}
+                        blobs[i + 0] += blobs[i + 3];
+                        blobs[i + 1] += blobs[i + 4];
+                    }
 
-					var data = new Float32Array(3 * NUM_BLOBS);
-					for (var i = 0, j = 0; i < len; i += BLOB_SIZE, j += 3) {
-						data[j + 0] = blobs[i + 0];
-						data[j + 1] = blobs[i + 1];
-						data[j + 2] = blobs[i + 2];
-					}
+                    var data = new Float32Array(3 * NUM_BLOBS);
+                    for (var i = 0, j = 0; i < len; i += BLOB_SIZE, j += 3) {
+                        data[j + 0] = blobs[i + 0];
+                        data[j + 1] = blobs[i + 1];
+                        data[j + 2] = blobs[i + 2];
+                    }
 
-					g.uniform3fv(locBlobs, data);
-					g.drawArrays(g.TRIANGLE_STRIP, 0, 4);
-				});
+                    g.uniform3fv(locBlobs, data);
+                    g.drawArrays(g.TRIANGLE_STRIP, 0, 4);
 
-			};
-		</script>
-		<script type="module">
-			import {wait} from './index.js';
-			wait();
-		</script>
-	</body>
+                    requestAnimationFrame(loop);
+                });
+
+            };
+        </script>
+    </body>
 </html>

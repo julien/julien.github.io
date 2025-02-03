@@ -1,0 +1,22 @@
+@view-transition {
+	navigation: auto;
+}
+
+::view-transition-old(root) {
+	animation: 500ms ease-out both slide-out;
+}
+
+::view-transition-new(root) {
+	animation: 500ms ease-out both slide-in;
+}
+
+@keyframes slide-out {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+@keyframes slide-in {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
