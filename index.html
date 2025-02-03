@@ -3,7 +3,7 @@
 <head>
     <link rel="icon" href="data:,">
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 	<link rel="stylesheet" href="style.css" />
     <title><hello></title>
     <style>
@@ -35,24 +35,40 @@
             margin: 0 auto;
         }
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-            width: 100%;
-        }
+		.grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+			gap: 10px;
+			margin-bottom: 30px;
+			width: 100%;
+		}
 
-        .grid img {
-            width: 100%;
-            height: auto;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-			transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+		.grid img {
+			width: 100%;
+			height: auto;
+			max-width: 160px;
+			border-radius: 8px;
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+			transition: transform 0.1s ease-in-out;
+		}
 
 		.grid img:hover {
-			transform: scale(1.3);
+			transform: scale(1.6);
+		}
+
+		@media (max-width: 768px) {
+			.grid {
+				grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+				gap: 5px;
+			}
+
+			.grid img {
+				max-width: 100px;
+			}
+
+			.container {
+				width: 90%;
+			}
 		}
 
         .content {
@@ -101,13 +117,11 @@
 				"Selam", "Ahoj", "Szia", "Χαίρετε", "Salve"
 			];
 
-			function shuffle(src) {
-				for (let i = src.length - 1; i > 0; i--) {
-					const j = Math.floor(Math.random() * (i + 1));
-					[src[i], src[j]] = [src[j], src[i]];
-				}
+			for (let i = words.length - 1; i > 0; i--) {
+				const j = Math.floor(Math.random() * (i + 1));
+				[words[i], words[j]] = [words[j], words[i]];
 			}
-			shuffle(words);
+
 			const content = document.getElementById("content");
 			const frag = document.createDocumentFragment();
 			for (let i = 0; i < words.length; i++) {
@@ -115,9 +129,7 @@
 				span.textContent = words[i];
 				span.classList.add("hello-word");
 				span.style.fontSize = (Math.random() * 1.2 + 1.6).toFixed(1) + "em";
-
 				frag.appendChild(span);	
-
 			}
 			content.appendChild(frag);
 		});
