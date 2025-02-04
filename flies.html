@@ -1,19 +1,10 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta
-            name="viewport"
-            content="width=device-width,minimum-scale=1,initial-scale=1"
-        />
         <style>
-            body,
-            html {
-                margin: 0;
-                width: 100%;
-                height: 100%;
-                overflow: hidden;
-            }
+            body,html { margin: 0; width: 100%; height: 100%; overflow: hidden; }
         </style>
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="style.css" />
         <link rel="icon" href="data:,">
     </head>
@@ -24,6 +15,9 @@
                 var WIDTH = innerWidth;
                 var HEIGHT = innerHeight;
                 var NUM_BLOBS = 512;
+				if (Math.min(WIDTH, HEIGHT) < 768)
+					NUM_BLOBS = 50;
+
                 var BLOB_SIZE = 5;
 
                 var c = document.getElementById("c");
