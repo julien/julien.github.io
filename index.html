@@ -23,7 +23,12 @@
             <a href="random.html"><img src="random.jpg"></a>
         </div>
 
-		<div class="content" id="content"></div>
+		<div class="greeting" id="greeting"></div>
+		<div class="text">
+			<span>Welcome to my (mostly unmaintained) space on the web, on which you won't find much.<span>
+			<span>(<a href="https://github.com/julien">GitHub profile</a>|<a href="/notes">notes</a>)</span>
+			</ul>
+		</div>
     </div>
 
 	<script>
@@ -39,14 +44,16 @@
 				[words[i], words[j]] = [words[j], words[i]];
 			}
 
-			const content = document.getElementById("content");
+			const mobile = Math.min(innerWidth, innerHeight) < 768; 
+
+			const content = document.getElementById("greeting");
 			const frag = document.createDocumentFragment();
 			for (let i = 0; i < words.length; i++) {
-				const span = document.createElement("span");
-				span.textContent = words[i];
-				span.classList.add("hello-word");
-				span.style.fontSize = (Math.random() * 1.2 + 1.).toFixed(1) + "em";
-				frag.appendChild(span);	
+				const s = document.createElement("span");
+				const a = mobile ? 1.0 : 1.2, b = mobile ? 1.0 : 1.4;
+				s.style.fontSize = (Math.random() * a + b).toFixed(1) + "em";
+				s.textContent = words[i];
+				frag.appendChild(s);	
 			}
 			content.appendChild(frag);
 		});

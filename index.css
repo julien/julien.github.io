@@ -9,29 +9,23 @@ body {
     min-height: 100vh;
 }
 
-@media (prefers-color-scheme: dark) {
-    body {
-        background-color: #000;
-        color: #f4f4f4;
-    }
-}
-
 .container {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: baseline;
     justify-content: flex-start;
     width: 90%;
     max-width: 840px;
     padding-top: 80px;
+	pointer-events: auto; 
 }
 
 .grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 15px;
+    gap: 20px;
     width: 100%;
-    padding: 10px;
+    padding: 10px 0;
 }
 
 .grid img {
@@ -43,49 +37,69 @@ body {
 }
 
 .grid img:hover {
-    transform: scale(1.3);
+	transform: scale(1.25);
+}
+
+.greeting {
+	color: #cc0000;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+	flex-direction: row-reverse;
+}
+
+.greeting span {
+	padding: 0 6px;
+}
+
+.text {
+	font-family: monospace;
+	font-size: 1.8em;
+	line-height: 1.8em;
 }
 
 @media (prefers-color-scheme: dark) {
-    .grid img {
+    body {
+        background-color: #333;
+        color: #f4f4f4;
+    }    
+
+	a, a:visited {
+		color: #ccc; 
+	}
+
+	a:hover {
+		color: #cc0000; 
+	}
+
+	.grid img {
         box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1);
     }
 }
 
-.content {
-    display: flex;
-    flex-wrap: wrap;
-	justify-content: center;
-    align-items: center;
-    width: 100%;
-    text-align: center;
-    padding: 10px;
-}
-
-@media (prefers-color-scheme: dark) {
-    .content {
-        color: white;
-    }
-}
-
 @media (max-width: 768px) {
-    .grid {
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-        gap: 8px;
-    }
-
-    .grid img {
-        width: min(100%, 120px);
-    }
-
     .container {
         width: 95%;
         padding-top: 20px;
     }
 
-    .content {
+    .grid {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    }
+
+    .grid img {
+        width: min(100%, 100px);
+		transition: transform 0.1s ease-in-out;
+    }
+
+    .greeting {
         font-size: 14px; 
         word-wrap: break-word;
         padding: 5px;
+    }
+
+	.text {
+		font-size: 1.6em;
+		line-height: 1.6em;
     }
 }
