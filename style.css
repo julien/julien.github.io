@@ -1,13 +1,15 @@
-@view-transition {
-	navigation: auto;
-}
+@media (min-width: 768px) {
+	@view-transition {
+		navigation: auto;
+	}
 
-::view-transition-old(root) {
-	animation: 500ms ease-out both slide-out;
-}
+	::view-transition-old(root) {
+		animation: 500ms ease-out both slide-out;
+	}
 
-::view-transition-new(root) {
-	animation: 500ms ease-out both slide-in;
+	::view-transition-new(root) {
+		animation: 500ms ease-out both slide-in;
+	}
 }
 
 @keyframes slide-out {

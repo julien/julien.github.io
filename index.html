@@ -24,11 +24,9 @@
         </div>
 
 		<div class="greeting" id="greeting"></div>
-		<div class="text">
-			<span>Welcome to my (mostly unmaintained) space on the web, on which you won't find much.<span>
-			<span>(<a href="https://github.com/julien">GitHub profile</a>|<a href="/notes">notes</a>)</span>
-			</ul>
-		</div>
+		<footer class="footer">
+			<a href="https://github.com/julien">GitHub profile</a>
+		</footer>
     </div>
 
 	<script>
@@ -44,14 +42,11 @@
 				[words[i], words[j]] = [words[j], words[i]];
 			}
 
-			const mobile = Math.min(innerWidth, innerHeight) < 768; 
-
 			const content = document.getElementById("greeting");
 			const frag = document.createDocumentFragment();
 			for (let i = 0; i < words.length; i++) {
 				const s = document.createElement("span");
-				const a = mobile ? 1.0 : 1.2, b = mobile ? 1.0 : 1.4;
-				s.style.fontSize = (Math.random() * a + b).toFixed(1) + "em";
+				s.style.fontSize = (Math.random() * 0.8 + 0.9).toFixed(1) + "em";
 				s.textContent = words[i];
 				frag.appendChild(s);	
 			}

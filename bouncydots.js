@@ -81,7 +81,7 @@
 					g = 5e3,
 					v = 30,
 					A = 20,
-					f = 300,
+					f = 80,
 					D = {
 						ax: Array.from(new Array(g)).fill(0),
 						ay: Array.from(new Array(g)).fill(0),

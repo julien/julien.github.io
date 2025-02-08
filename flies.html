@@ -14,10 +14,8 @@
             onload = function() {
                 var WIDTH = innerWidth;
                 var HEIGHT = innerHeight;
-                var NUM_BLOBS = 512;
-				if (Math.min(WIDTH, HEIGHT) < 768)
-					NUM_BLOBS = 50;
-
+				var SIZE = Math.min(WIDTH, HEIGHT);
+				var NUM_BLOBS = Math.floor(SIZE/10);
                 var BLOB_SIZE = 5;
 
                 var c = document.getElementById("c");
