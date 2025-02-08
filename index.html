@@ -3,13 +3,13 @@
 <head>
     <link rel="icon" href="data:,">
     <meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-	<link rel="stylesheet" href="style.css" />
-	<link rel="stylesheet" href="index.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="index.css" />
     <title><hello></title>
 </head>
 <body>
-    <div class="container">
+    <div class="container" id="container">
         <div class="grid">
             <a href="blobs.html"><img src="blobs.jpg"></a>
             <a href="flies.html"><img src="flies.jpg"></a>
@@ -23,35 +23,94 @@
             <a href="random.html"><img src="random.jpg"></a>
         </div>
 
-		<div class="greeting" id="greeting"></div>
-		<footer class="footer">
-			<a href="https://github.com/julien">GitHub profile</a>
-		</footer>
+        <div class="greeting" id="greeting"></div>
+        <canvas id="canvas"></canvas>
+        <footer class="footer">
+            <a href="https://github.com/julien">GitHub profile</a>
+        </footer>
     </div>
 
-	<script>
-		document.addEventListener("DOMContentLoaded", () => {
-			const words = [
-				"Hello", "Hola", "Bonjour", "Hallo", "Ciao", "Olá", "Привет", "你好",
-				"こんにちは", "안녕하세요", "Merhaba", "שלום", "नमस्ते", "Hej", "Hei",
-				"Selam", "Ahoj", "Szia", "Χαίρετε", "Salve"
-			];
+    <script src="dude.js"></script>
+    <script>
+        onload = () => {
+            const container = document.getElementById("container");
+            const words = [
+                "Hello", "Hola", "Bonjour", "Hallo", "Ciao", "Olá", "Привет", "你好",
+                "こんにちは", "안녕하세요", "Merhaba", "שלום", "नमस्ते", "Hej", "Hei",
+                "Selam", "Ahoj", "Szia", "Χαίρετε", "Salve"
+            ];
 
-			for (let i = words.length - 1; i > 0; i--) {
-				const j = Math.floor(Math.random() * (i + 1));
-				[words[i], words[j]] = [words[j], words[i]];
-			}
+            for (let i = words.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [words[i], words[j]] = [words[j], words[i]];
+            }
 
-			const content = document.getElementById("greeting");
-			const frag = document.createDocumentFragment();
-			for (let i = 0; i < words.length; i++) {
-				const s = document.createElement("span");
-				s.style.fontSize = (Math.random() * 0.8 + 0.9).toFixed(1) + "em";
-				s.textContent = words[i];
-				frag.appendChild(s);	
-			}
-			content.appendChild(frag);
-		});
-	</script>
+            const content = document.getElementById("greeting");
+            const frag = document.createDocumentFragment();
+            for (let i = 0; i < words.length; i++) {
+                const s = document.createElement("span");
+                s.style.fontSize = (Math.random() * 0.8 + 0.9).toFixed(1) + "em";
+                s.textContent = words[i];
+                frag.appendChild(s);    
+            }
+            content.appendChild(frag);
+
+            const canvas = document.getElementById("canvas");
+            const gl = canvas.getContext('webgl2');
+            if (!gl) {
+                return;
+            }
+            gl.enable(gl.BLEND);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+            const vsrc = `precision mediump float;
+            attribute vec2 a_position;
+            attribute vec2 a_texCoord;
+            uniform mat3 u_world;
+            uniform mat3 u_object;
+            uniform vec2 u_frame;
+            varying vec2 v_texCoord;
+            void main() {
+                gl_Position = vec4(u_world * u_object * vec3(a_position, 1.0), 1.0);
+                v_texCoord = a_texCoord + u_frame;
+            }`;
+
+            const fsrc = `precision mediump float;
+            uniform sampler2D u_tex;
+            varying vec2 v_texCoord;
+            void main() {
+                gl_FragColor = texture2D(u_tex, v_texCoord);
+            }`;
+
+            let worldSpaceMatrix = new M3x3();
+            const sprite = new Sprite(gl, 'dude.png', vsrc, fsrc, {width: 32, height: 32});
+            const pos = {x: 0, y: 0};
+            const frm = {x: 0, y: 0};
+            loop();
+
+            function loop() {
+                requestAnimationFrame(loop);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+
+                frm.x = (Date.now() * 0.004) % 2;
+                frm.y = (Date.now() * 0.006) % 2;
+                pos.x = (pos.x + .5) % 256;
+                sprite.render(pos, frm);
+
+                gl.flush();
+            }
+
+            function resize() {
+                canvas.width = container.clientWidth;
+                canvas.height = 128;
+                const wRatio = canvas.clientWidth / (canvas.clientHeight / 32);
+                gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+                worldSpaceMatrix = new M3x3().transition(-1, 1).scale(2 / wRatio, -2 / 32);
+                sprite.worldSpaceMatrix = worldSpaceMatrix;
+            }
+            onresize = resize;
+            resize();
+        };
+    </script>
 </body>
 </html>
