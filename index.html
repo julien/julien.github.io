@@ -24,7 +24,6 @@
         </div>
 
         <div class="greeting" id="greeting"></div>
-        <canvas id="canvas"></canvas>
         <footer class="footer">
             <a href="https://github.com/julien">GitHub profile</a>
         </footer>
@@ -54,62 +53,6 @@
                 frag.appendChild(s);    
             }
             content.appendChild(frag);
-
-            const canvas = document.getElementById("canvas");
-            const gl = canvas.getContext('webgl2');
-            if (!gl) {
-                return;
-            }
-            gl.enable(gl.BLEND);
-            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-            const vsrc = `precision mediump float;
-            attribute vec2 a_position;
-            attribute vec2 a_texCoord;
-            uniform mat3 u_world;
-            uniform mat3 u_object;
-            uniform vec2 u_frame;
-            varying vec2 v_texCoord;
-            void main() {
-                gl_Position = vec4(u_world * u_object * vec3(a_position, 1.0), 1.0);
-                v_texCoord = a_texCoord + u_frame;
-            }`;
-
-            const fsrc = `precision mediump float;
-            uniform sampler2D u_tex;
-            varying vec2 v_texCoord;
-            void main() {
-                gl_FragColor = texture2D(u_tex, v_texCoord);
-            }`;
-
-            let worldSpaceMatrix = new M3x3();
-            const sprite = new Sprite(gl, 'dude.png', vsrc, fsrc, {width: 32, height: 32});
-            const pos = {x: 0, y: 0};
-            const frm = {x: 0, y: 0};
-            loop();
-
-            function loop() {
-                requestAnimationFrame(loop);
-                gl.clear(gl.COLOR_BUFFER_BIT);
-
-                frm.x = (Date.now() * 0.004) % 2;
-                frm.y = (Date.now() * 0.006) % 2;
-                pos.x = (pos.x + .5) % 256;
-                sprite.render(pos, frm);
-
-                gl.flush();
-            }
-
-            function resize() {
-                canvas.width = container.clientWidth;
-                canvas.height = 128;
-                const wRatio = canvas.clientWidth / (canvas.clientHeight / 32);
-                gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
-                worldSpaceMatrix = new M3x3().transition(-1, 1).scale(2 / wRatio, -2 / 32);
-                sprite.worldSpaceMatrix = worldSpaceMatrix;
-            }
-            onresize = resize;
-            resize();
         };
     </script>
 </body>
