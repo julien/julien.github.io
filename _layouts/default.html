@@ -1,17 +1,52 @@
-<!doctype html>
-<html>
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<link rel="icon" href="data:,">
-		<style type="text/css">
-			body{margin:40px auto; font-family: sans-serif;
-			max-width:650px;line-height:1.6;font-size:18px;
-			color:#444;padding:0 10px}
-			h1,h2,h3{line-height:1.2}
-		</style>
-	</head>
-	<body>
-		{{ content }}
-	</body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="icon" href="data:,">
+	<style type="text/css">
+		body{margin:40px auto; font-family: sans-serif;
+		max-width:650px;line-height:1.6;font-size:18px;
+		color:#444;padding:0 10px}
+		h1,h2,h3{line-height:1.2}
+		@media (min-width: 768px) {
+			@view-transition {
+				navigation: auto;
+			}
+			::view-transition-old(root) {
+				animation: 500ms ease-out both slide-out;
+			}
+			::view-transition-new(root) {
+				animation: 500ms ease-out both slide-in;
+			}
+		}
+
+		@keyframes slide-out {
+			from { transform: translateX(0); }
+			to { transform: translateX(-100%); }
+		}
+
+		@keyframes slide-in {
+			from { transform: translateX(100%); }
+			to { transform: translateX(0); }
+		}
+		@media (prefers-color-scheme: dark) {
+			body {
+				background-color: #333;
+				color: #f4f4f4;
+			}
+
+			a, a:visited {
+				color: #ccc;
+			}
+
+			a:hover {
+				color: #cc0000;
+			}
+		}
+	</style>
+</head>
+<body>
+	{{ content }}
+</body>
 </html>
