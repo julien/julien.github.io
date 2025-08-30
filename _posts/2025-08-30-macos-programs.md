@@ -5,75 +5,75 @@ title: "Useful macOS programs"
 
 # Some useful programs on macOS
 
-I'm not particularly a "fan" of Apple or macOS (or any other brand for that
-matter) but it just happens that I've been using their hardware and software on
-and off for some time. As a user, my experience is that macOS is getting
-"worse" with every new release (it's a pity because these days Apple's hardware
-works really well), but it still has useful tools that you might not be aware
-of.
+I'm not particularly a fan of Apple or macOS (nor any other brand for that
+matter), but I've been using their hardware and software on and off for some
+time. As a user, my impression is that macOS is getting worse with every new
+release (a pity, because Apple’s hardware is quite reliable these days). That
+said, macOS still includes some useful tools that you might not be aware of.
 
-### Utilities
+## Utilities
 
-To check your **network connection**, open your terminal and issue the following command:
+### Check network connection
+You can quickly measure network performance with:
 
 ```
 networkQuality
 ```
 
-After a short while, the program will display the upload speed, download speed,
-responsiveness and latency.
+After a short while, it will display upload speed, download speed,
+responsiveness, and latency.
 
+### Prevent sleep
 
-If you want to avoid your system from sleeping, you can use:
+To stop your system from sleeping, use:
 
 ```
 caffeinate -disu
 ```
 
 This will prevent:
+
 - The display from sleeping
 - The system from idle sleeping
-- The system from sleeping (only works if the system is running on AC power)
-- Keep the current user as active
+- The system from sleeping (only on AC power)
+- The current user from going inactive
 
-I often see people download "Apps" from the App Store to do this, but there's
-absolutely no need for that, unless you prefer using it of course.
+See `man caffeinate` for more details.
 
-Check `man caffeinate` for more information.
+### Window management
 
-Window management has been improved slightly on macOS in latest versions,
-you can use keyboard shortcuts to move and resize windows. Once again,
-not the best (nor complete) solution, but it's already better than nothing.
-Open System Settings > Keyboards > Keyboard Shortcuts and have a look at the
-Window section for more information.
+Window management in macOS has improved slightly in recent versions. You can
+move and resize windows with keyboard shortcuts. Open **System Settings >
+Keyboard > Keyboard Shortcuts**, then check the **Window** section for
+configuration options. It’s not perfect, but better than nothing.
 
-### For programming
+### Other handy built-ins
 
-I know that the first thing some people do when setting up macOS for
-programming is to install Homebrew, before installing the usual tools they need
-such as: git, ripgrep, etc... I have nothing against Homebrew, I've been using
-it for some time and it has always worked fine for my use case. My point is that
-you don't need to install it in order to get git or other programs on macOS.
+- `pbcopy` / `pbpaste`: copy and paste text from the clipboard in the terminal
 
-You can simply open a terminal and use the following command:
+## For programming
+
+A common first step when setting up macOS for development is to install
+Homebrew. It’s a great package manager, but you don’t need it just to get
+started, macOS already provides quite a bit out of the box.
+
+To install the Command Line Tools for Xcode (without the full Xcode IDE):
 
 ```
 xcode-select --install
 ```
 
-This will download and install the Command Line Tools for Xcode (without
-installing the Xcode IDE itself) which are command line programs such as
-compilers (clang, swift), formatters (clang-format, swift-format), debuggers
-(lldb), sdks (python3 with pip3) and git.
+This downloads compilers (`clang`, `swift`), formatters (`clang-format`,
+`swift-format`), debuggers (`lldb`), SDKs (like `python3` with `pip3`), and
+`git`.
 
-There's also vim (version 9.1) installed on macOS in case you want to use
-what's already included. There's also a version of (gnu) `screen` installed
-if you want a to use terminal multiplexer, unfortunately, it's quite an old
-version that doesn't support "true" colors (just like Terminal.app).
+Even without the Command Line Tools, macOS ships with some basics like `vim`
+(version 9.1), `screen` (an ancient version without true color support), and other
+utilities. The drawback is that these tools are often outdated and may lack
+features. But if that doesn’t bother you, they’re perfectly usable.
 
-If Apple cared about it's users and released a version of macOS without the
-default "Applications" (or at least let the user remove them) and up to date
-versions of these tools it would be better, but that will probably never
-happen.
+A version of macOS without the default "Applications" (or at least the
+possibility to remove them entirely) and up to date versions of these tools it
+would be so much better, but that will probably never happen.
 
 [back](../)
