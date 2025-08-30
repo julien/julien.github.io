@@ -5,8 +5,6 @@ title: "Notes"
 
 # Notes
 
-Here's a list of notes:
-
 <ul>
   {% for post in site.posts %}
     <li>

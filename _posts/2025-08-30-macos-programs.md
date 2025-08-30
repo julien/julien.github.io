@@ -75,3 +75,5 @@ If Apple cared about it's users and released a version of macOS without the
 default "Applications" (or at least let the user remove them) and up to date
 versions of these tools it would be better, but that will probably never
 happen.
+
+[back](../)
