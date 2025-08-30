@@ -50,9 +50,9 @@ Window section for more information.
 ### For programming
 
 I know that the first thing some people do when setting up macOS for
-programming is to install Homebew, before installing the usual tools they need
+programming is to install Homebrew, before installing the usual tools they need
 such as: git, ripgrep, etc... I have nothing against Homebrew, I've been using
-it for some time and it's always worked fine for my use case. My point is that
+it for some time and it has always worked fine for my use case. My point is that
 you don't need to install it in order to get git or other programs on macOS.
 
 You can simply open a terminal and use the following command:
