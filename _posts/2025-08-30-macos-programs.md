@@ -75,5 +75,3 @@ features. But if that doesn’t bother you, they’re perfectly usable.
 A version of macOS without the default "Applications" (or at least the
 possibility to remove them entirely) and up to date versions of these tools it
 would be so much better, but that will probably never happen.
-
-[back](../)
