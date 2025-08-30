@@ -72,6 +72,6 @@ if you want a to use terminal multiplexer, unfortunately, it's quite an old
 version that doesn't support "true" colors (just like Terminal.app).
 
 If Apple cared about it's users and released a version of macOS without the
-default "Applications" (or at least let the user remove them) and up to date of
-these tools it would be better, but in the meantime it's not as bad as some
-people say.
+default "Applications" (or at least let the user remove them) and up to date
+versions of these tools it would be better, but that will probably never
+happen.
