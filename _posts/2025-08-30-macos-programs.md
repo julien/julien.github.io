@@ -1,6 +1,6 @@
 ---
 layout: default
-title: "macOS programs"
+title: "Useful macOS programs"
 ---
 
 # Some useful programs on macOS
